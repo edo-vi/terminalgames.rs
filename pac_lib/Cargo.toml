@@ -1,8 +1,7 @@
 [package]
-name = "pacman"
+name = "pac_lib"
 version = "0.1.0"
 authors = ["edoardo <edovi@icloud.com>"]
 
 [dependencies]
-pac_lib = { path= "pac_lib" }
-pancurses = "0.16"
+pancurses = "0.16.0"

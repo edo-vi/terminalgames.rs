@@ -39,14 +39,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pacman"
-version = "0.1.0"
-dependencies = [
- "pac_lib 0.1.0",
- "pancurses 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "pancurses"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
