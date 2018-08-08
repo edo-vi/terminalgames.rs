@@ -5,4 +5,3 @@ authors = ["edoardo <edovi@icloud.com>"]
 
 [dependencies]
 pac_lib = { path= "pac_lib" }
-pancurses = "0.16"

@@ -1,26 +1,31 @@
 
 extern crate pancurses;
 
-pub mod player {
-
-}
-
 pub mod renderer {
 
-    use super::pancurses::{initscr, endwin, Input as PanInput};
+    use super::pancurses::{initscr, endwin, Input as PancursesInput};
 
     pub enum PlayerInput {
-        Arrow(PanInput),
-        Valid(char),
+        Arrow(PancursesInput),
+        Character(char),
         Invalid
     }
 
     pub struct Renderer {
-        _interval: u32
+        _interval: u32,
+        _valid_keys: Vec<char>,
     }
 
+
     impl Renderer {
-        pub fn get_player_input() -> PlayerInput {
+        pub fn create(interval: u32, valid_keys: &[char]) -> Self {
+            let vec: Vec<char> = valid_keys.iter().map(|a| {*a}).collect();
+            Renderer {
+                _interval: interval,
+                _valid_keys: vec
+            }
+        }
+        pub fn get_player_input(&self) -> PlayerInput {
             let window = initscr();
             window.keypad(true);
             window.refresh();
@@ -31,12 +36,11 @@ pub mod renderer {
                 None => PlayerInput::Invalid,
                 Some(v) => {
                     match v {
-                        PanInput::KeyLeft|PanInput::KeyRight|PanInput::KeyDown|PanInput::KeyUp => PlayerInput::Arrow(v),
-                        PanInput::Character(c) => {
-                            // valid playerinputs
-                            match c {
-                                'w'|'a'|'s'|'d' => PlayerInput::Valid(c),
-                                _ => PlayerInput::Invalid
+                        PancursesInput::KeyLeft|PancursesInput::KeyRight|PancursesInput::KeyDown|PancursesInput::KeyUp => PlayerInput::Arrow(v),
+                        PancursesInput::Character(c) => {
+                            match self._is_key_valid(c) {
+                                true => PlayerInput::Character(c),
+                                false => PlayerInput::Invalid
                             }
                         }
                         _ => PlayerInput::Invalid
@@ -51,12 +55,18 @@ pub mod renderer {
         pub fn destroy(self) {
             println!("Destroying Renderer");
         }
-        fn _is_key_valid(key: PanInput) -> bool {
-            if key==PanInput::Character('w') || key==PanInput::Character('a')
-                || key==PanInput::Character('s') || key==PanInput::Character('d') {
+
+        fn _is_key_valid(&self, key: char) -> bool {
+            // valid keyboard inputs
+            if self._valid_keys.contains(&key) {
                 true
             } else {
                 false
+            }
+        }
+        pub fn populate_valid_keys(&mut self, keys: &[char]) {
+            for a in keys.iter() {
+                self._valid_keys.push(*a);
             }
         }
     }
