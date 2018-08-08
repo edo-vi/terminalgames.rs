@@ -18,13 +18,20 @@ pub mod renderer {
 
 
     impl Renderer {
+
         pub fn create(interval: u32, valid_keys: &[char]) -> Self {
-            let vec: Vec<char> = valid_keys.iter().map(|a| {*a}).collect();
+            let mut vec: Vec<char> = Vec::new();
+            for &a in valid_keys {
+                vec.push(a);
+            }
+            // shadows mutable binding to immutable
+            let vec = vec;
             Renderer {
                 _interval: interval,
                 _valid_keys: vec
             }
         }
+
         pub fn get_player_input(&self) -> PlayerInput {
             let window = initscr();
             window.keypad(true);
@@ -48,6 +55,7 @@ pub mod renderer {
                 }
             }
         }
+
         pub fn set_interval(&mut self, interval: u32) {
             self._interval=interval;
         }
@@ -64,6 +72,7 @@ pub mod renderer {
                 false
             }
         }
+
         pub fn populate_valid_keys(&mut self, keys: &[char]) {
             for a in keys.iter() {
                 self._valid_keys.push(*a);
