@@ -1,9 +1,9 @@
-
-extern crate pancurses;
+pub mod game;
 
 pub mod renderer {
 
-    use super::pancurses::{initscr, endwin, Window, Input as PancursesInput};
+    extern crate pancurses;
+    use self::pancurses::{initscr, endwin, Window, Input as PancursesInput};
     use std::{thread, time};
 
     pub enum PlayerInput {
@@ -20,11 +20,11 @@ pub mod renderer {
 
     //TODO change number of arguments
     impl Renderer {
-        ///Associated function used to initialize a Renderer. Accepts [n]! arguments: interval,
+        ///Create a new Renderer. Accepts [n]! arguments: interval,
         /// which indicates the number of milliseconds that must pass before rendering the screen again,
         /// and valid_keys, immutable borrow of a char array that contains the keyboard characters we
         /// consider valid (note that the arrow keys are always valid).
-        pub fn create(interval: u32, valid_keys: &[char]) -> Self {
+        pub fn new(interval: u32, valid_keys: &[char]) -> Self {
             let mut vec: Vec<char> = Vec::new();
             for &a in valid_keys {
                 vec.push(a);
