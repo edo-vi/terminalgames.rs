@@ -2,6 +2,8 @@
 name = "pacman"
 version = "0.1.0"
 authors = ["edoardo <edovi@icloud.com>"]
+private = true
 
 [dependencies]
 pac_lib = { path= "pac_lib" }
+

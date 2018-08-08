@@ -3,7 +3,8 @@ extern crate pancurses;
 
 pub mod renderer {
 
-    use super::pancurses::{initscr, endwin, Input as PancursesInput};
+    use super::pancurses::{initscr, endwin, Window, Input as PancursesInput};
+    use std::{thread, time};
 
     pub enum PlayerInput {
         Arrow(PancursesInput),
@@ -14,6 +15,7 @@ pub mod renderer {
     pub struct Renderer {
         _interval: u32,
         _valid_keys: Vec<char>,
+        _window: Window
     }
 
 
@@ -26,14 +28,18 @@ pub mod renderer {
             }
             // shadows mutable binding to immutable
             let vec = vec;
+
+            let _win = initscr();
+
             Renderer {
                 _interval: interval,
-                _valid_keys: vec
+                _valid_keys: vec,
+                _window: _win
             }
         }
 
         pub fn get_player_input(&self) -> PlayerInput {
-            let window = initscr();
+            let window = &self._window;
             window.keypad(true);
             window.refresh();
             let key = window.getch();
@@ -77,6 +83,30 @@ pub mod renderer {
             for a in keys.iter() {
                 self._valid_keys.push(*a);
             }
+        }
+        ///test per vedere se funziona in cargo doc
+        pub fn render_border(&self) {
+            let dur = time::Duration::from_millis(100);
+            let _subwin = self._window.subwin(10,15,5,10);
+            let _suw : Window;
+            self._window.setscrreg(1,20);
+            match _subwin {
+                Err(e) => {
+                    endwin();
+                    panic!("Errore nel creare subwindow: {}", e)
+                },
+                Ok(t) => {_suw = t;}
+            }
+            for i in 1..1000 {
+
+                self._window.printw("HELLO");
+                thread::sleep(dur);
+                self._window.refresh();
+                _suw.border('|','|','_', ' ', ' ', ' ', ' ', ' ');
+                _suw.touchline(0,20);
+                _suw.refresh();
+            }
+            endwin();
         }
     }
 }
