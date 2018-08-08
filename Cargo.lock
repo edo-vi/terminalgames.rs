@@ -32,17 +32,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "pac_lib"
-version = "0.1.0"
-dependencies = [
- "pancurses 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "pacman"
 version = "0.1.0"
 dependencies = [
- "pac_lib 0.1.0",
+ "terminalgames 0.1.0",
 ]
 
 [[package]]
@@ -70,6 +63,13 @@ dependencies = [
 name = "pkg-config"
 version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "terminalgames"
+version = "0.1.0"
+dependencies = [
+ "pancurses 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "winapi"

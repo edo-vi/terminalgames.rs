@@ -18,9 +18,12 @@ pub mod renderer {
         _window: Window
     }
 
-
+    //TODO change number of arguments
     impl Renderer {
-
+        ///Associated function used to initialize a Renderer. Accepts [n]! arguments: interval,
+        /// which indicates the number of milliseconds that must pass before rendering the screen again,
+        /// and valid_keys, immutable borrow of a char array that contains the keyboard characters we
+        /// consider valid (note that the arrow keys are always valid).
         pub fn create(interval: u32, valid_keys: &[char]) -> Self {
             let mut vec: Vec<char> = Vec::new();
             for &a in valid_keys {
@@ -71,7 +74,6 @@ pub mod renderer {
         }
 
         fn _is_key_valid(&self, key: char) -> bool {
-            // valid keyboard inputs
             if self._valid_keys.contains(&key) {
                 true
             } else {

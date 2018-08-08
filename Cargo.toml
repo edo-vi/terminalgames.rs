@@ -5,5 +5,5 @@ authors = ["edoardo <edovi@icloud.com>"]
 private = true
 
 [dependencies]
-pac_lib = { path= "pac_lib" }
+terminalgames = { path= "terminalgames" }
 
