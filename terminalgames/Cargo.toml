@@ -5,4 +5,4 @@ authors = ["edoardo <edovi@icloud.com>"]
 private = true
 
 [dependencies]
-pancurses = {version = "0.16.0"}
+pancurses = "0.16.0"

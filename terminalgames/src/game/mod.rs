@@ -1,7 +1,8 @@
 pub mod board;
-use self::board::{Board};
+use self::board::{ShareableBoard};
 
 struct Game {
-    board: Board
+    board: ShareableBoard,
+
 }
 

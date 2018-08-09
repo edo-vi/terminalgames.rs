@@ -88,10 +88,11 @@ pub mod renderer {
         }
         ///test per vedere se funziona in cargo doc
         pub fn render_border(&self) {
-            let dur = time::Duration::from_millis(100);
-            let _subwin = self._window.subwin(10,15,5,10);
+            let dur = time::Duration::from_millis(200);
+            let dur2 = time::Duration::from_millis(1000);
+            let _subwin = self._window.subwin(10,10,5,10);
             let _suw : Window;
-            self._window.setscrreg(1,20);
+
             match _subwin {
                 Err(e) => {
                     endwin();
@@ -104,8 +105,26 @@ pub mod renderer {
                 self._window.printw("HELLO");
                 thread::sleep(dur);
                 self._window.refresh();
-                _suw.border('|','|','_', ' ', ' ', ' ', ' ', ' ');
-                _suw.touchline(0,20);
+
+                self._window.nodelay(true);
+                let key = self._window.getch();
+                match key {
+                    Some(c) => {
+                        match c {
+                            PancursesInput::Character(c) => {
+                                self._window.erase();
+                                self._window.printw("AAAQQQQQQQQQQQQQQA");
+                                self._window.refresh();
+                                thread::sleep(dur2);
+                            }
+                            _ => ()
+                        }
+                    }
+                    _ => ()
+                }
+                _suw.border('*','*','*','*',' ',' ',' ',' ');
+                //_suw.touchline(0,20);
+
                 _suw.refresh();
             }
             endwin();
