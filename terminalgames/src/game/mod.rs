@@ -1,8 +1,8 @@
 pub mod board;
-use self::board::{ShareableBoard};
+use self::board::{Board, Tile};
+use std::sync::{RwLock};
 
 struct Game {
-    board: ShareableBoard,
-
+    board: Board<RwLock<Vec<Tile>>>,
 }
 
