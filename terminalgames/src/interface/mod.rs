@@ -36,7 +36,10 @@ impl Interface {
 
     }
     pub fn test_renderer(&self) {
-        self._renderer.as_ref().unwrap().render_border();
+        match self._renderer {
+            None => println!("No Renderer found"),
+            Some(ref C) => C.render_border()
+        }
     }
 
 }
