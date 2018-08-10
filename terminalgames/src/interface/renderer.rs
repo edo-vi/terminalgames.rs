@@ -1,5 +1,5 @@
 
-use super::pancurses::{initscr, endwin, Window, Input as PancursesInput};
+use super::pancurses::{initscr, endwin, Window, half_delay, echo, flushinp, Input as PancursesInput};
 use std::{thread, time};
 
 pub enum PlayerInput {
@@ -33,6 +33,10 @@ impl Renderer {
             _valid_keys: vec,
             _window: window
         }
+    }
+
+    pub fn interval(&self) -> u32 {
+        self._interval
     }
 
     pub fn get_player_input(&self) -> PlayerInput {
@@ -85,7 +89,10 @@ impl Renderer {
         let dur = time::Duration::from_millis(200);
         let dur2 = time::Duration::from_millis(1000);
         let _subwin = self._window.subwin(10,10,5,10);
+        self._window.setscrreg(1,14);
+        self._window.scrollok(true);
         let _suw : Window;
+        let _input_window: Window = self._window.subwin(3,15,15,2).unwrap();
 
         match _subwin {
             Err(e) => {
@@ -97,19 +104,27 @@ impl Renderer {
         for i in 1..1000 {
 
             self._window.printw("HELLO");
-            thread::sleep(dur);
             self._window.refresh();
 
-            self._window.nodelay(true);
+            _input_window.refresh();
+
+            half_delay(5);
             let key = self._window.getch();
+
+            self._window.refresh();
             match key {
                 Some(c) => {
                     match c {
                         PancursesInput::Character(c) => {
                             self._window.erase();
+                            _suw.border('*','*','*','*',' ',' ',' ',' ');
+                            //_suw.touchline(0,20);
+                            _suw.refresh();
                             self._window.printw("AAAQQQQQQQQQQQQQQA");
                             self._window.refresh();
                             thread::sleep(dur2);
+
+                            flushinp();
                         }
                         _ => ()
                     }
@@ -118,8 +133,9 @@ impl Renderer {
             }
             _suw.border('*','*','*','*',' ',' ',' ',' ');
             //_suw.touchline(0,20);
-
             _suw.refresh();
+            self._window.refresh();
+            thread::sleep(dur);
         }
         endwin();
     }
