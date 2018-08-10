@@ -17,16 +17,11 @@ pub struct Renderer {
 //TODO change number of arguments
 impl Renderer {
     pub (in interface) fn new(interval: u32, valid_keys: &[char], window: Rc<Window>) -> Self {
-        let mut vec: Vec<char> = Vec::new();
-        for &a in valid_keys {
-            vec.push(a);
-        }
-        // shadows mutable binding to immutable
-        let vec = vec;
+        let keys: Vec<char> = valid_keys.iter().map(|a| *a).collect();
 
         Renderer {
             _interval: interval,
-            _valid_keys: vec,
+            _valid_keys: keys,
             _window: window
         }
     }
@@ -37,6 +32,15 @@ impl Renderer {
 
     pub fn interval(&self) -> u32 {
         self._interval
+    }
+
+    pub fn set_interval(&mut self, interval: u32) {
+        self._interval=interval;
+    }
+
+    pub fn set_valid_keys(&mut self, valid_keys: &[char]) {
+        let keys: Vec<char> = valid_keys.iter().map(|a| *a).collect();
+        self._valid_keys = keys;
     }
 
     pub fn get_player_input(&self) -> PlayerInput {
@@ -63,9 +67,7 @@ impl Renderer {
         }
     }
 
-    pub fn set_interval(&mut self, interval: u32) {
-        self._interval=interval;
-    }
+
 
 
     fn _is_key_valid(&self, key: char) -> bool {
@@ -83,8 +85,7 @@ impl Renderer {
     }
     ///Random tests of pancurses library
     pub fn render_border(&self) {
-        let dur = time::Duration::from_millis(200);
-        let dur2 = time::Duration::from_millis(1000);
+        let dur = time::Duration::from_millis(self._interval as u64);
         let _subwin = self._window.subwin(10,10,5,10);
         self._window.setscrreg(1,14);
         self._window.scrollok(true);
@@ -105,7 +106,7 @@ impl Renderer {
 
             _input_window.refresh();
 
-            half_delay(5);
+            half_delay(1);
             let key = self._window.getch();
 
             self._window.refresh();
@@ -119,7 +120,7 @@ impl Renderer {
                             _suw.refresh();
                             self._window.printw("AAAQQQQQQQQQQQQQQA");
                             self._window.refresh();
-                            thread::sleep(dur2);
+                            thread::sleep(dur);
 
                             flushinp();
                         }
