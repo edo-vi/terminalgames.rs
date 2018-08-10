@@ -1,7 +1,7 @@
 
 use super::pancurses::{initscr, endwin, Window, half_delay, echo, flushinp, Input as PancursesInput};
 use std::{thread, time};
-
+use super::Rc;
 pub enum PlayerInput {
     Arrow(PancursesInput),
     Character(char),
@@ -11,12 +11,12 @@ pub enum PlayerInput {
 pub struct Renderer {
     _interval: u32,
     _valid_keys: Vec<char>,
-    _window: Window
+    _window: Rc<Window>
 }
 
 //TODO change number of arguments
 impl Renderer {
-    pub (in interface) fn new(interval: u32, valid_keys: &[char], window: Window) -> Self {
+    pub (in interface) fn new(interval: u32, valid_keys: &[char], window: Rc<Window>) -> Self {
         let mut vec: Vec<char> = Vec::new();
         for &a in valid_keys {
             vec.push(a);
@@ -29,6 +29,10 @@ impl Renderer {
             _valid_keys: vec,
             _window: window
         }
+    }
+
+    pub (in interface) fn set_window(&mut self, window: Rc<Window>) {
+        self._window=window;
     }
 
     pub fn interval(&self) -> u32 {
@@ -63,9 +67,6 @@ impl Renderer {
         self._interval=interval;
     }
 
-    pub fn destroy(self) {
-        println!("Destroying Renderer");
-    }
 
     fn _is_key_valid(&self, key: char) -> bool {
         if self._valid_keys.contains(&key) {

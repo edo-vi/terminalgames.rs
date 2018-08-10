@@ -1,5 +1,5 @@
 use super::RwLock;
-
+///A single tile
 pub enum Tile{
     Border(Option<char>),
     Active(Option<char>),
@@ -10,6 +10,13 @@ pub enum Tile{
 #[derive(Debug)]
 pub struct Dimensions(pub u16,pub u16);
 
+impl PartialEq for Dimensions{
+    fn eq(&self, other: &Dimensions) -> bool {
+        self.0 == other.0 && self.1 == other.1
+    }
+}
+impl Eq for Dimensions {}
+
 #[derive(Debug)]
 pub struct Coordinates(pub u16,pub u16);
 
@@ -18,7 +25,7 @@ impl PartialEq for Coordinates{
         self.0 == other.0 && self.1 == other.1
     }
 }
-
+impl Eq for Coordinates {}
 
 ///T is either Vec\<Tile\> or RwLock\<Vec\<Tile\>\>
 pub struct Board<T>  {
@@ -37,10 +44,12 @@ impl<T> Board<T> {
     pub fn dimensions(&self) -> &Dimensions {
         &self._dimensions
     }
+
     ///Returns the set of coordinates of a point position.
     pub fn as_coord(&self, point: u16) -> Coordinates {
         Coordinates (point/(self._dimensions.0+1), point%(self._dimensions.0+1))
     }
+
     ///Returns the point position of a set of coordinates. Accepts only an immutable borrow to the
     /// coordinates to non take it ownership.
     pub fn as_point(&self, coord: &Coordinates) -> u16 {
