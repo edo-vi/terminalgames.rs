@@ -16,10 +16,6 @@ pub struct Renderer {
 
 //TODO change number of arguments
 impl Renderer {
-    ///Create a new Renderer. Accepts [n]! arguments: interval,
-    /// which indicates the number of milliseconds that must pass before rendering the screen again,
-    /// and valid_keys, immutable borrow of a char array that contains the keyboard characters we
-    /// consider valid (note that the arrow keys are always valid).
     pub (in interface) fn new(interval: u32, valid_keys: &[char], window: Window) -> Self {
         let mut vec: Vec<char> = Vec::new();
         for &a in valid_keys {
@@ -84,7 +80,7 @@ impl Renderer {
             self._valid_keys.push(*a);
         }
     }
-    ///test per vedere se funziona in cargo doc
+    ///Random tests of pancurses library
     pub fn render_border(&self) {
         let dur = time::Duration::from_millis(200);
         let dur2 = time::Duration::from_millis(1000);

@@ -7,6 +7,7 @@ pub enum Tile{
     NonBlocking(Option<char>)
 }
 
+#[derive(Debug)]
 pub struct Dimensions(pub u16,pub u16);
 
 #[derive(Debug)]
@@ -36,12 +37,14 @@ impl<T> Board<T> {
     pub fn dimensions(&self) -> &Dimensions {
         &self._dimensions
     }
-    pub fn convert_to_plane(&self, pos: u16) -> Coordinates {
-        Coordinates (pos/(self._dimensions.0+1), pos%(self._dimensions.0+1))
+    ///Returns the set of coordinates of a point position.
+    pub fn as_coord(&self, point: u16) -> Coordinates {
+        Coordinates (point/(self._dimensions.0+1), point%(self._dimensions.0+1))
     }
-
-    pub fn convert_to_line(&self, pos: Coordinates) -> u16 {
-        pos.0*(self._dimensions.0+1)+pos.1
+    ///Returns the point position of a set of coordinates. Accepts only an immutable borrow to the
+    /// coordinates to non take it ownership.
+    pub fn as_point(&self, coord: &Coordinates) -> u16 {
+        coord.0*(self._dimensions.0+1)+coord.1
     }
 }
 
