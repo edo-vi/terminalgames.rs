@@ -30,7 +30,7 @@ impl Interface {
             None => self._renderer=Some(Renderer::new(interval, valid_keys, Rc::clone(&self._window))),
             Some(ref mut R) => {
                 R.set_interval(interval);
-                R.set_valid_keys(valid_keys);
+                R.set_keys(valid_keys);
             }
         }
 

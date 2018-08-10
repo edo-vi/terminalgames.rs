@@ -17,11 +17,9 @@ pub struct Renderer {
 //TODO change number of arguments
 impl Renderer {
     pub (in interface) fn new(interval: u32, valid_keys: &[char], window: Rc<Window>) -> Self {
-        let keys: Vec<char> = valid_keys.iter().map(|a| *a).collect();
-
         Renderer {
             _interval: interval,
-            _valid_keys: keys,
+            _valid_keys: Renderer::vectorize(valid_keys),
             _window: window
         }
     }
@@ -38,9 +36,8 @@ impl Renderer {
         self._interval=interval;
     }
 
-    pub fn set_valid_keys(&mut self, valid_keys: &[char]) {
-        let keys: Vec<char> = valid_keys.iter().map(|a| *a).collect();
-        self._valid_keys = keys;
+    pub fn set_keys(&mut self, valid_keys: &[char]) {
+        self._valid_keys = Renderer::vectorize(valid_keys);
     }
 
     pub fn get_player_input(&self) -> PlayerInput {
@@ -67,8 +64,9 @@ impl Renderer {
         }
     }
 
-
-
+    fn vectorize(keys: &[char]) -> Vec<char> {
+        keys.iter().map(|a| *a).collect()
+    }
 
     fn _is_key_valid(&self, key: char) -> bool {
         if self._valid_keys.contains(&key) {
