@@ -38,6 +38,8 @@ pub struct Board<T>  {
     _dimensions: Dimensions
 }
 
+pub type Area = Vec<Tile>;
+
 impl<T> Board<T> {
 
     pub fn dimensions(&self) -> &Dimensions {
@@ -49,13 +51,15 @@ impl<T> Board<T> {
 
     ///Returns the set of coordinates of a point position.
     pub fn as_coord(&self, point: u16) -> Coordinates {
-        Coordinates (point/(self._dimensions.0+1), point%(self._dimensions.0+1))
+        let dim_x=self.dimensions().0;
+        Coordinates (point/(dim_x+1), point%(dim_x+1))
     }
 
     ///Returns the point position of a set of coordinates. Accepts only an immutable borrow to the
     /// coordinates to non take it ownership.
     pub fn as_point(&self, coord: &Coordinates) -> u16 {
-        coord.0*(self._dimensions.0+1)+coord.1
+        let dim_x=self.dimensions().0;
+        coord.0*(dim_x+1)+coord.1
     }
 }
 
@@ -77,7 +81,8 @@ impl Board<RwLock<Vec<Tile>>> {
         }
 
     }
-    pub fn swap_tiles(&self, tiles: Vec<Tile>) {
+    ///Replaces all the current tiles with those passed as argument
+    pub fn replace_tiles(&self, tiles: Vec<Tile>) {
         //We use deref_mut to get &mut T with RwLockWriteGuard<T>; if the lock is poisoned, this
         //call will panic
         mem::replace(self._get_guard().deref_mut(), tiles);
@@ -96,21 +101,18 @@ impl Board<RwLock<Vec<Tile>>> {
             || i%((*dim).0 as usize)==0 /* first tile */
             || i%((*dim).0 as usize)==dim.1 as usize /* last tile */
                     {
-                *v=Tile::Border(Some('*'))
+                *v=Tile::Border(Some('*')) //todo
             }
         }
     }
 }
 
-
-/*impl Board<Vec<Tile>> {
-
-    pub fn new(dim: Dimensions) -> Board<Vec<Tile>> {
-        let tiles = vec![Tile::New(None);dim.0 as usize * dim.1 as usize];
-        Board {_tiles: tiles, _dimensions: dim}
+impl Default for Board<RwLock<Vec<Tile>>> {
+    fn default() -> Board<RwLock<Vec<Tile>>> {
+        Board {
+            _tiles: RwLock::new(Vec::new()),
+            _dimensions: Dimensions(0,0)
+        }
     }
-    pub fn set_tiles(&mut self, tiles: Vec<Tile>) {
-        mem::replace(&mut self._tiles, tiles);
-    }
-}*/
+}
 

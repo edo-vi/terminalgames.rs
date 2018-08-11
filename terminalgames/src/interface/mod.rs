@@ -3,7 +3,8 @@ extern crate pancurses;
 pub mod renderer;
 pub mod input;
 
-
+use std::sync::{Weak, RwLock};
+use super::game::board::{Tile};
 use self::renderer::{Renderer};
 use self::input::{Input};
 use self::pancurses::{initscr, Window};
@@ -12,13 +13,14 @@ pub struct Interface {
     _renderer: Option<Renderer>,
     _input: Option<Input>,
     _window: Window,
+    _board: Weak<RwLock<Vec<Tile>>>
 }
 
 
 impl Interface {
-    pub fn new() -> Self {
+    pub fn new(board: Weak<RwLock<Vec<Tile>>>) -> Self {
         let win = initscr();
-        Interface {_renderer: Option::None, _input: Option::None, _window: win}
+        Interface {_renderer: Option::None, _input: Option::None, _window: win, _board: board}
     }
     ///Creates a new Renderer. Accepts [n]! arguments: 'interval',
     /// which indicates the number of milliseconds that must pass before rendering the screen again,
