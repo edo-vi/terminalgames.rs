@@ -1,7 +1,10 @@
 use super::RwLock;
+use std::mem;
 ///A single tile
+#[derive(Clone)]
 pub enum Tile{
     Border(Option<char>),
+    New(Option<char>),
     Active(Option<char>),
     Blocking(Option<char>),
     NonBlocking(Option<char>)
@@ -34,15 +37,12 @@ pub struct Board<T>  {
 }
 
 impl<T> Board<T> {
-    pub fn new(tiles: T, dim: Dimensions) -> Board<T> {
-        Board {_tiles: tiles, _dimensions: dim}
-    }
-    pub fn set_dimensions(&mut self, dim: Dimensions) {
-        self._dimensions = dim;
-    }
 
     pub fn dimensions(&self) -> &Dimensions {
         &self._dimensions
+    }
+    pub fn set_dimensions(&mut self, dim: Dimensions) {
+        self._dimensions = dim;
     }
 
     ///Returns the set of coordinates of a point position.
@@ -54,6 +54,19 @@ impl<T> Board<T> {
     /// coordinates to non take it ownership.
     pub fn as_point(&self, coord: &Coordinates) -> u16 {
         coord.0*(self._dimensions.0+1)+coord.1
+    }
+
+
+}
+
+impl Board<RwLock<Vec<Tile>>> {
+
+    pub fn new(dim: Dimensions) -> Board<RwLock<Vec<Tile>>> {
+        let tiles = RwLock::new(vec![Tile::New(None);dim.0 as usize * dim.1 as usize]);
+        Board {_tiles: tiles, _dimensions: dim}
+    }
+    pub fn set_tiles(&mut self, tiles: Vec<Tile>) {
+        mem::replace(&mut self._tiles, RwLock::new(tiles));
     }
 }
 
