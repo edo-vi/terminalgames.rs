@@ -4,22 +4,21 @@ pub mod renderer;
 pub mod input;
 
 use std::sync::{Weak, RwLock};
-use super::game::board::{Tile};
 use self::renderer::{Renderer};
 use self::input::{Input};
 use self::pancurses::{initscr, Window};
-use game::board::Area;
+use game::board::{Tile, Area, LockedArea};
 
 pub struct Interface {
     _renderer: Option<Renderer>,
     _input: Option<Input>,
     _window: Window,
-    _board: Weak<RwLock<Area>>
+    _board: Weak<LockedArea>
 }
 
 
 impl Interface {
-    pub fn new(board: Weak<RwLock<Area>>) -> Self {
+    pub fn new(board: Weak<LockedArea>) -> Self {
         let win = initscr();
         Interface {_renderer: Option::None, _input: Option::None, _window: win, _board: board}
     }

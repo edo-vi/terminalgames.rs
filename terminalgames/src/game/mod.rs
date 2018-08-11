@@ -1,15 +1,13 @@
 pub mod board;
 use self::board::{Board, Tile};
 use std::sync::{RwLock, LockResult, RwLockWriteGuard};
-use game::board::Area;
-use game::board::Dimensions;
-use game::board::BoardError;
+use game::board::{Dimensions, BoardError, Area, LockedArea};
 
 pub struct Game<T> {
     _board: Board<T>
 }
 
-impl Game<RwLock<Area>> {
+impl Game<LockedArea> {
     pub fn new() -> Self {
         Game {_board: Default::default()}
     }
