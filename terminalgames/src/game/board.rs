@@ -62,26 +62,43 @@ impl<T> Board<T> {
 impl Board<RwLock<Vec<Tile>>> {
 
     pub fn new(dim: Dimensions) -> Board<RwLock<Vec<Tile>>> {
-        let tiles = RwLock::new(vec![Tile::New(None);dim.0 as usize * dim.1 as usize]);
+        let tiles = RwLock::new(vec![Tile::New(None);(dim.0 as usize * dim.1 as usize)-1]);
         Board {_tiles: tiles, _dimensions: dim}
     }
-    pub fn swap_tiles(&mut self, tiles: Vec<Tile>) {
+
+    fn _get_guard(&self) -> RwLockWriteGuard<Vec<Tile>> {
         // Attempt to get the lock over the board tiles
-        let mut result: LockResult<RwLockWriteGuard<Vec<Tile>>> = self._tiles.write();
+        let result: LockResult<RwLockWriteGuard<Vec<Tile>>> = self._tiles.write();
 
         match result {
-            //We got the non-poisoned lock, now we swap the value contained in the guard with
-            // the new tiles. We use deref_mut to get a &mut T with RwLockWriteGuard<T>
-            Ok(mut guard) => {
-                mem::replace(guard.deref_mut(), tiles);
-            },
-            Err(poison_err) => panic!("The lock over the boar tiles was poisoned!")
+            //We got the non-poisoned lock, so we return it alongside
+            Ok(guard) => guard,
+            Err(_) => panic!("The lock over the boar tiles was poisoned!")
         }
 
     }
+    pub fn swap_tiles(&self, tiles: Vec<Tile>) {
+        //We use deref_mut to get &mut T with RwLockWriteGuard<T>; if the lock is poisoned, this
+        //call will panic
+        mem::replace(self._get_guard().deref_mut(), tiles);
+    }
 
     pub fn set_border(&mut self) {
+        //Extends guard lifetime until this function returns
+        let mut guard = self._get_guard();
 
+        let dim: &Dimensions = self.dimensions();
+
+        let mut mutable_to_tile: &mut Vec<Tile> = guard.deref_mut();
+        for (i, v) in mutable_to_tile.into_iter().enumerate() {
+            if i/((*dim).0 as usize)==0 /* first line */
+            || i/((*dim).0 as usize)==dim.1 as usize-1 /* last line */
+            || i%((*dim).0 as usize)==0 /* first tile */
+            || i%((*dim).0 as usize)==dim.1 as usize /* last tile */
+                    {
+                *v=Tile::Border(Some('*'))
+            }
+        }
     }
 }
 

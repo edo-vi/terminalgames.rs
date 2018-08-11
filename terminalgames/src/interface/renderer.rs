@@ -1,7 +1,7 @@
 
-use super::pancurses::{initscr, endwin, Window, half_delay, echo, flushinp, Input as PancursesInput};
+use super::pancurses::{endwin, Window, half_delay, flushinp, Input as PancursesInput};
 use std::{thread, time};
-use super::Rc;
+
 pub enum PlayerInput {
     Arrow(PancursesInput),
     Character(char),
@@ -91,7 +91,7 @@ impl Renderer {
             },
             Ok(t) => {_suw = t;}
         }
-        for i in 1..1000 {
+        for _ in 1..1000 {
 
             window.printw("HELLO");
             window.refresh();
@@ -110,7 +110,7 @@ impl Renderer {
                             _suw.border('*','*','*','*',' ',' ',' ',' ');
                             //_suw.touchline(0,20);
                             _suw.refresh();
-                            window.printw("AAAQQQQQQQQQQQQQQA");
+                            window.printw(c.to_string().repeat(20));
                             window.refresh();
                             thread::sleep(dur);
 
