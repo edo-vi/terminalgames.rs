@@ -1,7 +1,10 @@
 use std::ops::DerefMut;
 use super::{RwLock, RwLockWriteGuard, LockResult};
-
 use std::mem;
+
+pub type Area = Vec<Tile>;
+pub type LockedArea = RwLock<Area>;
+
 ///A single tile
 #[derive(Clone)]
 pub enum Tile{
@@ -32,13 +35,14 @@ impl PartialEq for Coordinates{
 }
 impl Eq for Coordinates {}
 
+pub enum BoardError{
+    WrongLen(String)
+}
 ///T is either Vec\<Tile\> or RwLock\<Vec\<Tile\>\>
 pub struct Board<T>  {
     _tiles: T,
     _dimensions: Dimensions
 }
-
-pub type Area = Vec<Tile>;
 
 impl<T> Board<T> {
 
@@ -63,16 +67,24 @@ impl<T> Board<T> {
     }
 }
 
-impl Board<RwLock<Vec<Tile>>> {
+impl Board<LockedArea> {
 
-    pub fn new(dim: Dimensions) -> Board<RwLock<Vec<Tile>>> {
-        let tiles = RwLock::new(vec![Tile::New(None);(dim.0 as usize * dim.1 as usize)-1]);
+    pub fn new(dim: Dimensions) -> Board<LockedArea> {
+        let tiles = RwLock::new(vec![Tile::New(None);(dim.0 as usize * dim.1 as usize)]);
         Board {_tiles: tiles, _dimensions: dim}
     }
 
-    fn _get_guard(&self) -> RwLockWriteGuard<Vec<Tile>> {
+    pub fn with_tiles(tiles: Area, dim: Dimensions) -> Result<Board<LockedArea>,BoardError> {
+        if tiles.len()!=(dim.0 as usize *dim.1 as usize) {
+            Err(BoardError::WrongLen("Wrong dimensions, tiles must be equal to dim_x * dim_y ".to_string()))
+        } else {
+            Ok(Board {_tiles: RwLock::new(tiles), _dimensions: dim})
+        }
+    }
+
+    fn _get_guard(&self) -> RwLockWriteGuard<Area> {
         // Attempt to get the lock over the board tiles
-        let result: LockResult<RwLockWriteGuard<Vec<Tile>>> = self._tiles.write();
+        let result: LockResult<RwLockWriteGuard<Area>> = self._tiles.write();
 
         match result {
             //We got the non-poisoned lock, so we return it alongside
@@ -82,7 +94,7 @@ impl Board<RwLock<Vec<Tile>>> {
 
     }
     ///Replaces all the current tiles with those passed as argument
-    pub fn replace_tiles(&self, tiles: Vec<Tile>) {
+    pub fn replace_tiles(&self, tiles: Area) {
         //We use deref_mut to get &mut T with RwLockWriteGuard<T>; if the lock is poisoned, this
         //call will panic
         mem::replace(self._get_guard().deref_mut(), tiles);
@@ -94,7 +106,7 @@ impl Board<RwLock<Vec<Tile>>> {
 
         let dim: &Dimensions = self.dimensions();
 
-        let mut mutable_to_tile: &mut Vec<Tile> = guard.deref_mut();
+        let mut mutable_to_tile: &mut Area = guard.deref_mut();
         for (i, v) in mutable_to_tile.into_iter().enumerate() {
             if i/((*dim).0 as usize)==0 /* first line */
             || i/((*dim).0 as usize)==dim.1 as usize-1 /* last line */
@@ -107,8 +119,8 @@ impl Board<RwLock<Vec<Tile>>> {
     }
 }
 
-impl Default for Board<RwLock<Vec<Tile>>> {
-    fn default() -> Board<RwLock<Vec<Tile>>> {
+impl Default for Board<LockedArea> {
+    fn default() -> Board<LockedArea> {
         Board {
             _tiles: RwLock::new(Vec::new()),
             _dimensions: Dimensions(0,0)

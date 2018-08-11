@@ -8,17 +8,18 @@ use super::game::board::{Tile};
 use self::renderer::{Renderer};
 use self::input::{Input};
 use self::pancurses::{initscr, Window};
+use game::board::Area;
 
 pub struct Interface {
     _renderer: Option<Renderer>,
     _input: Option<Input>,
     _window: Window,
-    _board: Weak<RwLock<Vec<Tile>>>
+    _board: Weak<RwLock<Area>>
 }
 
 
 impl Interface {
-    pub fn new(board: Weak<RwLock<Vec<Tile>>>) -> Self {
+    pub fn new(board: Weak<RwLock<Area>>) -> Self {
         let win = initscr();
         Interface {_renderer: Option::None, _input: Option::None, _window: win, _board: board}
     }
