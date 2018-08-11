@@ -11,21 +11,15 @@ pub enum PlayerInput {
 pub struct Renderer {
     _interval: u32,
     _valid_keys: Vec<char>,
-    _window: Rc<Window>
 }
 
 //TODO change number of arguments
 impl Renderer {
-    pub (in interface) fn new(interval: u32, valid_keys: &[char], window: Rc<Window>) -> Self {
+    pub (in interface) fn new(interval: u32, valid_keys: &[char]) -> Self {
         Renderer {
             _interval: interval,
             _valid_keys: Renderer::vectorize(valid_keys),
-            _window: window
         }
-    }
-
-    pub (in interface) fn set_window(&mut self, window: Rc<Window>) {
-        self._window=window;
     }
 
     pub fn interval(&self) -> u32 {
@@ -40,12 +34,12 @@ impl Renderer {
         self._valid_keys = Renderer::vectorize(valid_keys);
     }
 
-    pub fn get_player_input(&self) -> PlayerInput {
-        let window = &self._window;
+    pub fn get_player_input(&self, window: &Window) -> PlayerInput {
         window.keypad(true);
         window.refresh();
+        half_delay(3);
         let key = window.getch();
-        endwin();
+
 
         match key {
             None => PlayerInput::Invalid,
@@ -82,13 +76,13 @@ impl Renderer {
         }
     }
     ///Random tests of pancurses library
-    pub fn render_border(&self) {
+    pub fn render_border(&self, window: &Window) {
         let dur = time::Duration::from_millis(self._interval as u64);
-        let _subwin = self._window.subwin(10,10,5,10);
-        self._window.setscrreg(1,14);
-        self._window.scrollok(true);
+        let _subwin = window.subwin(10,10,5,10);
+        window.setscrreg(1,14);
+        window.scrollok(true);
         let _suw : Window;
-        let _input_window: Window = self._window.subwin(3,15,15,2).unwrap();
+        let _input_window: Window = window.subwin(3,15,15,2).unwrap();
 
         match _subwin {
             Err(e) => {
@@ -99,25 +93,25 @@ impl Renderer {
         }
         for i in 1..1000 {
 
-            self._window.printw("HELLO");
-            self._window.refresh();
+            window.printw("HELLO");
+            window.refresh();
 
             _input_window.refresh();
 
             half_delay(1);
-            let key = self._window.getch();
+            let key = window.getch();
 
-            self._window.refresh();
+            window.refresh();
             match key {
                 Some(c) => {
                     match c {
                         PancursesInput::Character(c) => {
-                            self._window.erase();
+                            window.erase();
                             _suw.border('*','*','*','*',' ',' ',' ',' ');
                             //_suw.touchline(0,20);
                             _suw.refresh();
-                            self._window.printw("AAAQQQQQQQQQQQQQQA");
-                            self._window.refresh();
+                            window.printw("AAAQQQQQQQQQQQQQQA");
+                            window.refresh();
                             thread::sleep(dur);
 
                             flushinp();
@@ -130,7 +124,7 @@ impl Renderer {
             _suw.border('*','*','*','*',' ',' ',' ',' ');
             //_suw.touchline(0,20);
             _suw.refresh();
-            self._window.refresh();
+            window.refresh();
             thread::sleep(dur);
         }
         endwin();

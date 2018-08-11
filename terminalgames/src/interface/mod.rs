@@ -4,7 +4,6 @@ pub mod renderer;
 pub mod input;
 
 use std::rc::Rc;
-use std::mem::replace as mem_replace;
 use self::renderer::{Renderer};
 use self::input::{Input};
 use self::pancurses::{initscr, Window};
@@ -27,7 +26,7 @@ impl Interface {
     /// consider valid (note that the arrow keys are always valid). It also initializes the target window.
     pub fn new_renderer(&mut self, interval: u32, valid_keys: &[char]) {
         match self._renderer {
-            None => self._renderer=Some(Renderer::new(interval, valid_keys, Rc::clone(&self._window))),
+            None => self._renderer=Some(Renderer::new(interval, valid_keys)),
             Some(ref mut R) => {
                 R.set_interval(interval);
                 R.set_keys(valid_keys);
@@ -38,8 +37,9 @@ impl Interface {
     pub fn test_renderer(&self) {
         match self._renderer {
             None => println!("No Renderer found"),
-            Some(ref C) => C.render_border()
+            Some(ref C) => C.render_border(&self._window)
         }
     }
+
 
 }
