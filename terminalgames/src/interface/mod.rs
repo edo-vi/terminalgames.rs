@@ -11,13 +11,13 @@ use self::pancurses::{initscr, Window};
 pub struct Interface {
     _renderer: Option<Renderer>,
     _input: Option<Input>,
-    _window: Rc<Window>,
+    _window: Window,
 }
 
 
 impl Interface {
     pub fn new() -> Self {
-        let win = Rc::new(initscr());
+        let win = initscr();
         Interface {_renderer: Option::None, _input: Option::None, _window: win}
     }
     ///Creates a new Renderer. Accepts [n]! arguments: 'interval',

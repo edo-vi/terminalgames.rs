@@ -1,4 +1,6 @@
-use super::RwLock;
+use std::ops::DerefMut;
+use super::{RwLock, RwLockWriteGuard, LockResult};
+
 use std::mem;
 ///A single tile
 #[derive(Clone)]
@@ -55,8 +57,6 @@ impl<T> Board<T> {
     pub fn as_point(&self, coord: &Coordinates) -> u16 {
         coord.0*(self._dimensions.0+1)+coord.1
     }
-
-
 }
 
 impl Board<RwLock<Vec<Tile>>> {
@@ -65,9 +65,35 @@ impl Board<RwLock<Vec<Tile>>> {
         let tiles = RwLock::new(vec![Tile::New(None);dim.0 as usize * dim.1 as usize]);
         Board {_tiles: tiles, _dimensions: dim}
     }
-    pub fn set_tiles(&mut self, tiles: Vec<Tile>) {
-        mem::replace(&mut self._tiles, RwLock::new(tiles));
+    pub fn swap_tiles(&mut self, tiles: Vec<Tile>) {
+        // Attempt to get the lock over the board tiles
+        let mut result: LockResult<RwLockWriteGuard<Vec<Tile>>> = self._tiles.write();
+
+        match result {
+            //We got the non-poisoned lock, now we swap the value contained in the guard with
+            // the new tiles. We use deref_mut to get a &mut T with RwLockWriteGuard<T>
+            Ok(mut guard) => {
+                mem::replace(guard.deref_mut(), tiles);
+            },
+            Err(poison_err) => panic!("The lock over the boar tiles was poisoned!")
+        }
+
+    }
+
+    pub fn set_border(&mut self) {
+
     }
 }
 
+
+/*impl Board<Vec<Tile>> {
+
+    pub fn new(dim: Dimensions) -> Board<Vec<Tile>> {
+        let tiles = vec![Tile::New(None);dim.0 as usize * dim.1 as usize];
+        Board {_tiles: tiles, _dimensions: dim}
+    }
+    pub fn set_tiles(&mut self, tiles: Vec<Tile>) {
+        mem::replace(&mut self._tiles, tiles);
+    }
+}*/
 

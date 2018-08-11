@@ -4,11 +4,11 @@ pub mod interface;
 
 #[cfg(test)]
 mod test {
-    use super::game::board::{Board,Dimensions,Coordinates};
-
+    use super::game::board::{Board,Dimensions,Coordinates,Tile};
+    use std::sync::RwLock;
     #[test]
     fn test_conversion() {
-        let board: Board<u8> = Board::new(8,Dimensions(4,3));
+        let board: Board<RwLock<Vec<Tile>>> = Board::new(Dimensions(4,3));
 
         assert_eq!(board.as_point(&Coordinates(0, 0)), 0);
         assert_eq!(board.as_point(&Coordinates(3, 4)), 19);
