@@ -7,18 +7,18 @@ use std::sync::{Weak, RwLock};
 use self::renderer::{Renderer};
 use self::input::{Input};
 use self::pancurses::{initscr, Window};
-use game::board::{Tile, Area, LockedArea};
+use game::board::{Tile, Area, LockedArea, Board};
 
 pub struct Interface {
     _renderer: Option<Renderer>,
     _input: Option<Input>,
     _window: Window,
-    _board: Weak<LockedArea>
+    _board: Weak<Board<LockedArea>>
 }
 
 
 impl Interface {
-    pub fn new(board: Weak<LockedArea>) -> Self {
+    pub fn new(board: Weak<Board<LockedArea>>) -> Self {
         let win = initscr();
         Interface {_renderer: Option::None, _input: Option::None, _window: win, _board: board}
     }

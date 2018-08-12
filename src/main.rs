@@ -6,15 +6,23 @@ use terminalgames::interface::{Interface};
 use terminalgames::interface::renderer::Renderer;
 use terminalgames::interface::input::Input;
 use terminalgames::game::{Game};
-use terminalgames::game::board::Dimensions;
-use terminalgames::game::board::Tile;
+use terminalgames::game::board::{Board, LockedArea, Tile, Dimensions};
 
 fn main() {
     let a: u32 = 200;
-    let keys: [char; 6] = ['w','a','s','d', '2', 'e'];
+    let keys: [char; 2] = ['w','a'];
     let mut game = Game::new();
-    game.set_board(vec![Tile::New(None);6*8], Dimensions(6,5));
+    game.set_board(vec![Tile::New(None);6*5], Dimensions(6,5));
 
-    a.clone();
+    let board: &mut Board<LockedArea> = game.mut_ref_board();
+    board.set_border();
+
+    
+    game.begin_rendering(a, keys.clone());
+
+    loop {
+        let b = a;
+
+    }
 }
 

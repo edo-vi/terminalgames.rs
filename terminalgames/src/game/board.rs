@@ -39,6 +39,7 @@ pub enum BoardError{
     WrongLen(String)
 }
 ///T is either Vec\<Tile\> or RwLock\<Vec\<Tile\>\>
+
 pub struct Board<T>  {
     _tiles: T,
     _dimensions: Dimensions
@@ -82,7 +83,7 @@ impl Board<LockedArea> {
         }
     }
 
-    fn _get_guard(&self) -> RwLockWriteGuard<Area> {
+    fn _get_lock(&self) -> RwLockWriteGuard<Area> {
         // Attempt to get the lock over the board tiles
         let result: LockResult<RwLockWriteGuard<Area>> = self._tiles.write();
 
@@ -97,12 +98,12 @@ impl Board<LockedArea> {
     pub fn replace_tiles(&self, tiles: Area) {
         //We use deref_mut to get &mut T with RwLockWriteGuard<T>; if the lock is poisoned, this
         //call will panic
-        mem::replace(self._get_guard().deref_mut(), tiles);
+        mem::replace(self._get_lock().deref_mut(), tiles);
     }
 
     pub fn set_border(&mut self) {
         //Extends guard lifetime until this function returns
-        let mut guard = self._get_guard();
+        let mut guard = self._get_lock();
 
         let dim: &Dimensions = self.dimensions();
 
