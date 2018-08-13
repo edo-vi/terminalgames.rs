@@ -6,6 +6,7 @@ private = true
 
 [dependencies]
 pancurses = "0.16.0"
+rand = "0.5.5"
 
 [[bin]]
 name="main"

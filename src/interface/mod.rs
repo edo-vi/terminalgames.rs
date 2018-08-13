@@ -1,5 +1,6 @@
 extern crate pancurses;
 
+
 pub mod renderer;
 pub mod input;
 
@@ -12,6 +13,7 @@ use std::sync::{RwLockReadGuard, RwLockWriteGuard, LockResult};
 use std::ops::Deref;
 use std::borrow::Borrow;
 use std::thread;
+
 use core::time;
 
 pub struct Interface {
@@ -70,17 +72,6 @@ impl Interface {
         //Transforms the weak pointer in an Arc pointer, and if returns None because it is dropped,
         //it will panic
         self._board.deref()
-    }
-    fn _get_write_lock(&self) -> RwLockWriteGuard<Board> {
-        // Attempt to get the lock over the board tiles
-        let result: LockResult<RwLockWriteGuard<Board>> = self.board().write();
-
-        match result {
-            //We got the non-poisoned lock, so we return it alongside
-            Ok(guard) => guard,
-            Err(_) => panic!("The lock over the boar tiles was poisoned!")
-        }
-
     }
 
     fn _get_read_lock(&self) -> RwLockReadGuard<Board> {
