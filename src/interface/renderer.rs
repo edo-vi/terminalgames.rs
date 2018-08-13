@@ -1,6 +1,10 @@
 
 use super::pancurses::{endwin, Window, half_delay, flushinp, Input as PancursesInput};
+use super::Board;
 use std::{thread, time};
+use game::board::Dimensions;
+use game::board::Tile;
+
 
 pub enum PlayerInput {
     Arrow(PancursesInput),
@@ -79,8 +83,7 @@ impl Renderer {
     pub fn render_border(&self, window: &Window) {
         let dur = time::Duration::from_millis(self._interval as u64);
         let _subwin = window.subwin(10,10,5,10);
-        window.setscrreg(1,14);
-        window.scrollok(true);
+
         let _suw : Window;
         let _input_window: Window = window.subwin(3,15,15,2).unwrap();
 
@@ -128,5 +131,23 @@ impl Renderer {
             thread::sleep(dur);
         }
         endwin();
+    }
+    pub fn render_board(&self, window: &Window, board: &Board) {
+        let Dimensions(x,y): Dimensions = *board.dimensions();
+        window.erase();
+        for i in 0..y  {
+            for j in 0..x {
+                match *board.get_tile(j as usize +i as usize *x as usize) {
+                    Tile::New(c) => window.addch(' '),
+                    Tile::Border(c) => window.addch('*'),
+                    _ => window.addch(' ')
+                };
+            }
+            window.mv(i as i32 +1,0);
+
+        }
+        window.refresh();
+
+        //endwin(); //todo change, only for debugging
     }
 }

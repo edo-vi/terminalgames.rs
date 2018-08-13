@@ -5,6 +5,8 @@ use game::board::{Board, Tile, Dimensions, BoardError, Area, LockedArea};
 use std::thread;
 use std::ops::Deref;
 use interface::{Interface, renderer::{Renderer}};
+use std::time::Duration;
+use std::thread::JoinHandle;
 
 pub struct Game {
     _board: Arc<RwLock<Board>>
@@ -14,6 +16,7 @@ impl Game {
     pub fn new() -> Self {
         Game {_board: Arc::new(RwLock::new(Default::default()))}
     }
+
     pub fn set_board(&mut self, tiles: Area, dimensions: Dimensions) {
         match Board::with_tiles(tiles, dimensions) {
             Ok(b) => self._board=Arc::new(RwLock::new(b)),
@@ -27,14 +30,14 @@ impl Game {
         self._board.deref()
     }
 
-    pub fn begin_rendering(&self, interval: u32, valid_keys: [char;2]) {
-
-        let weak_ptr=Arc::downgrade(&self._board.clone());
+    pub fn begin_rendering(&self, interval: u32, valid_keys: [char;2]) -> JoinHandle<()> {
+        let pointer=Arc::clone(&self._board);
         thread::spawn(move || {
-            let mut interface = Interface::new(weak_ptr);
+            let mut interface = Interface::new(pointer);
             interface.new_renderer(interval, &valid_keys);
-            interface.test_renderer();
-        });
+            interface.render_loop();
+        })
+
     }
 
     fn _get_write_lock(&self) -> RwLockWriteGuard<Board> {

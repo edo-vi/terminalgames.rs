@@ -81,7 +81,9 @@ impl Board {
             }
         }
     }
-
+    pub fn get_tile(&self, i: usize) -> &Tile {
+        &self._tiles[i]
+    }
     pub fn dimensions(&self) -> &Dimensions {
         &self._dimensions
     }
