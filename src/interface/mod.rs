@@ -8,10 +8,9 @@ use std::sync::{Arc, RwLock};
 use self::renderer::{Renderer};
 use self::input::{Input};
 use self::pancurses::{initscr, Window};
-use game::board::{Tile, Area, LockedArea, Board};
-use std::sync::{RwLockReadGuard, RwLockWriteGuard, LockResult};
+use game::board::{Board};
+use std::sync::{RwLockReadGuard, LockResult};
 use std::ops::Deref;
-use std::borrow::Borrow;
 use std::thread;
 
 use core::time;
@@ -55,7 +54,7 @@ impl Interface {
 
     }
     pub fn render_loop(&self) {
-        let dur = time::Duration::from_millis(10);
+        let dur = time::Duration::from_millis(30);
         loop {
             { //gets the read lock
                 let guard: RwLockReadGuard<Board> = self._get_read_lock();

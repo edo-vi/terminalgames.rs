@@ -2,12 +2,11 @@ pub mod board;
 extern crate rand;
 
 use std::sync::{RwLock, LockResult, RwLockWriteGuard, RwLockReadGuard, Arc};
-use game::board::{Board, Tile, Dimensions, BoardError, Area, LockedArea};
+use game::board::{Board, Tile, Dimensions, BoardError, Area};
 use std::thread;
 use std::ops::Deref;
 use std::ops::DerefMut;
-use interface::{Interface, renderer::{Renderer}};
-use std::time::Duration;
+use interface::{Interface};
 use std::thread::JoinHandle;
 use self::rand::Rng;
 
@@ -45,11 +44,12 @@ impl Game {
 
     pub fn change_random_tile(&self) {
         let mut guard = self._get_write_lock();
-        let mut board: &mut Board = guard.deref_mut();
+        let board: &mut Board = guard.deref_mut();
 
 
         let mut rng = rand::thread_rng();
         let Dimensions(x,y) = *board.dimensions();
+
         board.set_tile(rng.gen::<usize>()%(x*y)as usize,Tile::Border(None));
         board.set_tile(rng.gen::<usize>()%(x*y)as usize,Tile::New(None));
     }

@@ -1,11 +1,7 @@
-use std::ops::DerefMut;
-use std::borrow::Borrow;
-use super::{RwLock, RwLockWriteGuard, RwLockReadGuard, LockResult};
 use std::mem;
 
 
 pub type Area = Vec<Tile>;
-pub type LockedArea = RwLock<Area>;
 
 ///A single tile
 #[derive(Clone)]
@@ -50,12 +46,12 @@ pub struct Board  {
 impl Board {
 
     pub fn new(dim: Dimensions) -> Board {
-        let tiles = vec![Tile::New(None);(dim.0 as usize * dim.1 as usize)];
+        let tiles = vec![Tile::New(None);dim.0 as usize * dim.1 as usize];
         Board {_tiles: tiles, _dimensions: dim}
     }
 
     pub fn with_tiles(tiles: Area, dim: Dimensions) -> Result<Board,BoardError> {
-        if tiles.len()!=(dim.0 as usize *dim.1 as usize) {
+        if tiles.len()!=dim.0 as usize *dim.1 as usize {
             Err(BoardError::WrongLen("Wrong dimensions, tiles must be equal to dim_x * dim_y ".to_string()))
         } else {
             Ok(Board {_tiles: tiles, _dimensions: dim})

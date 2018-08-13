@@ -138,8 +138,8 @@ impl Renderer {
         for i in 0..y  {
             for j in 0..x {
                 match *board.get_tile(j as usize +i as usize *x as usize) {
-                    Tile::New(c) => window.addch(' '),
-                    Tile::Border(c) => window.addch('*'),
+                    Tile::New(_c) => window.addch(' '),
+                    Tile::Border(_c) => window.addch('*'),
                     _ => window.addch(' ')
                 };
             }
