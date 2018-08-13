@@ -13,7 +13,7 @@ pub struct Renderer {
     _valid_keys: Vec<char>,
 }
 
-//TODO change number of arguments
+
 impl Renderer {
     pub (in interface) fn new(interval: u32, valid_keys: &[char]) -> Self {
         Renderer {

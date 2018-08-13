@@ -13,12 +13,12 @@ pub struct Interface {
     _renderer: Option<Renderer>,
     _input: Option<Input>,
     _window: Window,
-    _board: Weak<Board<LockedArea>>
+    _board: Weak<RwLock<Board>>
 }
 
 
 impl Interface {
-    pub fn new(board: Weak<Board<LockedArea>>) -> Self {
+    pub fn new(board: Weak<RwLock<Board>>) -> Self {
         let win = initscr();
         Interface {_renderer: Option::None, _input: Option::None, _window: win, _board: board}
     }

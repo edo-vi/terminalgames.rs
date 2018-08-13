@@ -1,35 +1,30 @@
 pub mod board;
-use self::board::{Board, Tile};
-use std::sync::{RwLock, LockResult, RwLockWriteGuard, Arc};
-use game::board::{Dimensions, BoardError, Area, LockedArea};
-use std::thread;
-use std::borrow::{BorrowMut, Borrow};
-use interface::renderer::Renderer;
-use interface::Interface;
 
-pub struct Game<T> {
-    _board: Arc<Board<T>>
+use std::sync::{RwLock, LockResult, RwLockWriteGuard, RwLockReadGuard, Arc};
+use game::board::{Board, Tile, Dimensions, BoardError, Area, LockedArea};
+use std::thread;
+use std::ops::Deref;
+use interface::{Interface, renderer::{Renderer}};
+
+pub struct Game {
+    _board: Arc<RwLock<Board>>
 }
 
-impl Game<LockedArea> {
+impl Game {
     pub fn new() -> Self {
-        Game {_board: Arc::new(Default::default())}
+        Game {_board: Arc::new(RwLock::new(Default::default()))}
     }
     pub fn set_board(&mut self, tiles: Area, dimensions: Dimensions) {
         match Board::with_tiles(tiles, dimensions) {
-            Ok(b) => self._board=Arc::new(b),
+            Ok(b) => self._board=Arc::new(RwLock::new(b)),
             Err(e) => match e {
                 BoardError::WrongLen(mes) => panic!("Couldn't set the board for the game: {}", mes)
             }
         }
     }
-    pub fn ref_board(&mut self) -> &Board<LockedArea> {
-        self._board.borrow()
-    }
-    pub fn mut_ref_board(&mut self) -> &mut Board<LockedArea> {
-        //todo check this, the problem is that it will fail if we have already shared the weak
-        //pointer to the other thread
-        Arc::get_mut(&mut self._board).unwrap()
+
+    pub fn board(&self) -> &RwLock<Board> {
+        self._board.deref()
     }
 
     pub fn begin_rendering(&self, interval: u32, valid_keys: [char;2]) {
@@ -40,5 +35,29 @@ impl Game<LockedArea> {
             interface.new_renderer(interval, &valid_keys);
             interface.test_renderer();
         });
+    }
+
+    fn _get_write_lock(&self) -> RwLockWriteGuard<Board> {
+        // Attempt to get the lock over the board tiles
+        let result: LockResult<RwLockWriteGuard<Board>> = self.board().write();
+
+        match result {
+            //We got the non-poisoned lock, so we return it alongside
+            Ok(guard) => guard,
+            Err(_) => panic!("The lock over the boar tiles was poisoned!")
+        }
+
+    }
+
+    fn _get_read_lock(&self) -> RwLockReadGuard<Board> {
+        // Attempt to get the lock over the board tiles
+        let result: LockResult<RwLockReadGuard<Board>> = self.board().read();
+
+        match result {
+            //We got the non-poisoned lock, so we return it alongside
+            Ok(guard) => guard,
+            Err(_) => panic!("The lock over the boar tiles was poisoned!")
+        }
+
     }
 }

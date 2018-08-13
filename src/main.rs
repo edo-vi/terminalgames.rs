@@ -14,10 +14,7 @@ fn main() {
     let mut game = Game::new();
     game.set_board(vec![Tile::New(None);6*5], Dimensions(6,5));
 
-    let board: &mut Board<LockedArea> = game.mut_ref_board();
-    board.set_border();
 
-    
     game.begin_rendering(a, keys.clone());
 
     loop {
