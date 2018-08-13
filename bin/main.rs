@@ -1,12 +1,8 @@
-
-
 extern crate terminalgames;
 
-use terminalgames::interface::{Interface};
-use terminalgames::interface::renderer::Renderer;
-use terminalgames::interface::input::Input;
-use terminalgames::game::{Game};
-use terminalgames::game::board::{Board, LockedArea, Tile, Dimensions};
+use terminalgames::game::Game;
+use terminalgames::game::board::Tile;
+use terminalgames::game::board::Dimensions;
 
 fn main() {
     let a: u32 = 200;

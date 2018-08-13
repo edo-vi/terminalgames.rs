@@ -1,8 +1,0 @@
-[package]
-name = "terminalgames"
-version = "0.1.0"
-authors = ["edoardo <edovi@icloud.com>"]
-private = true
-
-[dependencies]
-pancurses = "0.16.0"
