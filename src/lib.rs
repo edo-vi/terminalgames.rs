@@ -10,7 +10,7 @@ mod test {
     use std::sync::RwLock;
     #[test]
     fn test_conversion() {
-        let board: Board<RwLock<Vec<Tile>>> = Board::new(Dimensions(4,3));
+        let board: Board = Board::new(Dimensions(4,3));
 
         assert_eq!(board.as_point(&Coordinates(0, 0)), 0);
         assert_eq!(board.as_point(&Coordinates(3, 4)), 19);
