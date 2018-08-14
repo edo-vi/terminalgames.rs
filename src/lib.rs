@@ -6,8 +6,8 @@ pub mod interface;
 
 #[cfg(test)]
 mod test {
-    use super::game::board::{Board,Dimensions,Coordinates,Tile};
-    use std::sync::RwLock;
+    use super::game::board::{Board,Dimensions,Coordinates};
+
     #[test]
     fn test_conversion() {
         let board: Board = Board::new(Dimensions(4,3));

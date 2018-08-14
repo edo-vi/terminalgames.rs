@@ -6,7 +6,7 @@ pub mod input;
 use std::sync::{Arc, RwLock};
 use self::renderer::{Renderer};
 use self::input::{Input, PlayerInput};
-use self::pancurses::{initscr, Window, Input as PancursesInput};
+use self::pancurses::{initscr, Window};
 use game::board::{Board};
 use std::sync::{RwLockReadGuard, LockResult};
 use std::ops::Deref;
@@ -70,20 +70,18 @@ impl Interface {
     }
 
     pub fn render_loop(&self) {
-        let dur = time::Duration::from_millis(30);
+        let input: &Input = self.input();
+        let renderer: &Renderer = self.renderer();
+
+        let dur = time::Duration::from_millis(renderer.interval() as u64);
         loop {
             { //gets the read lock
                 let guard: RwLockReadGuard<Board> = self._get_read_lock();
                 //guard.deref returns an immutable borrow to the inner value guarded
-                self.renderer().render_board(&self._window, guard.deref());
+                renderer.render_board(&self._window, guard.deref());
             } //guard is dropped here
 
-            match self._input {
-                Some(ref input) => {
-                    self._sender.send(input.get_player_input(&self._window)).unwrap()
-                },
-                None => panic!("No Input object to get player input")
-            };
+            self._sender.send(input.get_player_input(&self._window)).unwrap();
             thread::sleep(dur);
         }
     }

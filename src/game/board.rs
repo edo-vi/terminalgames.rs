@@ -7,7 +7,7 @@ pub type Area = Vec<Tile>;
 #[derive(Clone)]
 pub enum Tile{
     Border(Option<char>),
-    New(Option<char>),
+    Empty(Option<char>),
     Active(Option<char>),
     Blocking(Option<char>),
     NonBlocking(Option<char>)
@@ -46,7 +46,7 @@ pub struct Board  {
 impl Board {
 
     pub fn new(dim: Dimensions) -> Board {
-        let tiles = vec![Tile::New(None);dim.0 as usize * dim.1 as usize];
+        let tiles = vec![Tile::Empty(None); dim.0 as usize * dim.1 as usize];
         Board {_tiles: tiles, _dimensions: dim}
     }
 

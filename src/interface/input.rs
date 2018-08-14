@@ -1,6 +1,5 @@
-use std::sync::mpsc::{channel, Sender};
 use super::pancurses::{Input as PancursesInput, noecho};
-use super::pancurses::half_delay;
+
 use super::pancurses::Window;
 
 #[derive(PartialEq)]

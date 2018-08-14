@@ -8,11 +8,9 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 use interface::{Interface};
 use std::thread;
-use std::time;
 use self::rand::Rng;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread::JoinHandle;
-use self::pancurses::{Input as PancursesInput};
 use interface::input::PlayerInput;
 
 pub struct Game {
@@ -42,7 +40,7 @@ impl Game {
         let guard=self.board().write();
         let mut board: RwLockWriteGuard<Board> = guard.unwrap();
         let Dimensions(x,y) = *(board.deref().dimensions());
-        board.replace_tiles(vec![Tile::New(None); x as usize *y as usize]);
+        board.replace_tiles(vec![Tile::Empty(None); x as usize *y as usize]);
     }
 
     pub fn begin_rendering(&mut self, interval: u32, valid_keys: [char;4]) -> JoinHandle<()> {
@@ -64,12 +62,13 @@ impl Game {
             Some(ref receiver) => {
                 match receiver.try_recv() {
                     Ok(value) => return value,
-                    Err(error) => return PlayerInput::Invalid, //todo check this
+                    Err(_) => return PlayerInput::Invalid, //todo check this
                 }
             },
             None => panic!("No receiver to use!")
         };
     }
+
     pub fn change_random_tile(&self) {
         let mut guard = self._get_write_lock();
         let board: &mut Board = guard.deref_mut();
@@ -79,7 +78,7 @@ impl Game {
         let Dimensions(x,y) = *board.dimensions();
 
         board.set_tile(rng.gen::<usize>()%(x*y)as usize,Tile::Border(None));
-        board.set_tile(rng.gen::<usize>()%(x*y)as usize,Tile::New(None));
+        board.set_tile(rng.gen::<usize>()%(x*y)as usize,Tile::Empty(None));
     }
 
     fn _get_write_lock(&self) -> RwLockWriteGuard<Board> {
