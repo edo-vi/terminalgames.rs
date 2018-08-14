@@ -1,6 +1,5 @@
 extern crate pancurses;
 
-
 pub mod renderer;
 pub mod input;
 
@@ -19,14 +18,15 @@ pub struct Interface {
     _renderer: Option<Renderer>,
     _input: Option<Input>,
     _window: Window,
-    _board: Arc<RwLock<Board>>
+    _board: Arc<RwLock<Board>>,
+    _sender: Sender<PlayerInput>
 }
 
 
 impl Interface {
-    pub fn new(board: Arc<RwLock<Board>>) -> Self {
+    pub fn new(board: Arc<RwLock<Board>>, sender: Sender<PlayerInput>) -> Self {
         let win = initscr();
-        Interface {_renderer: Option::None, _input: Option::None, _window: win, _board: board}
+        Interface {_renderer: Option::None, _input: Option::None, _window: win, _board: board, _sender: sender}
     }
     ///Creates a new Renderer. Accepts [n]! arguments: 'interval',
     /// which indicates the number of milliseconds that must pass before rendering the screen again,
@@ -40,12 +40,11 @@ impl Interface {
             }
         }
     }
-    pub fn new_input(&mut self, valid_keys: &[char], sender: Sender<PlayerInput>) {
+    pub fn new_input(&mut self, valid_keys: &[char]) {
         match self._input {
-            None => self._input=Some(Input::new(valid_keys, sender)),
+            None => self._input=Some(Input::new(valid_keys)),
             Some(ref mut i) => {
                 i.set_keys(valid_keys);
-                i.set_sender(sender);
             }
         }
     }
@@ -53,6 +52,13 @@ impl Interface {
     pub fn renderer(&self) -> &Renderer {
         match self._renderer {
             Some(ref renderer) => renderer,
+            None => panic!("No renderer")
+        }
+    }
+
+    pub fn input(&self) -> &Input {
+        match self._input {
+            Some(ref input) => input,
             None => panic!("No renderer")
         }
     }
@@ -73,7 +79,9 @@ impl Interface {
             } //guard is dropped here
 
             match self._input {
-                Some(ref input) => input.get_player_input(&self._window),
+                Some(ref input) => {
+                    self._sender.send(input.get_player_input(&self._window)).unwrap()
+                },
                 None => panic!("No Input object to get player input")
             };
             thread::sleep(dur);

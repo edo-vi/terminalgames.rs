@@ -25,6 +25,10 @@ impl Game {
         Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None}
     }
 
+    pub fn board(&self) -> &RwLock<Board> {
+        self._board.deref()
+    }
+
     pub fn set_board(&mut self, tiles: Area, dimensions: Dimensions) {
         match Board::with_tiles(tiles, dimensions) {
             Ok(b) => self._board=Arc::new(RwLock::new(b)),
@@ -34,28 +38,36 @@ impl Game {
         }
     }
 
-    pub fn board(&self) -> &RwLock<Board> {
-        self._board.deref()
+    pub fn erase_board(&mut self) {
+        let guard=self.board().write();
+        let mut board: RwLockWriteGuard<Board> = guard.unwrap();
+        let Dimensions(x,y) = *(board.deref().dimensions());
+        board.replace_tiles(vec![Tile::New(None); x as usize *y as usize]);
     }
 
-    pub fn begin_rendering(&mut self, interval: u32, valid_keys: [char;2]) -> JoinHandle<()> {
+    pub fn begin_rendering(&mut self, interval: u32, valid_keys: [char;4]) -> JoinHandle<()> {
         let pointer=Arc::clone(&self._board);
         let (sender,receiver) = channel();
         self._receiver = Some(receiver);
 
         thread::spawn(move || {
-            let mut interface = Interface::new(pointer);
+            let mut interface = Interface::new(pointer, sender);
             interface.new_renderer(interval);
-            interface.new_input(&valid_keys, sender);
+            interface.new_input(&valid_keys);
             interface.render_loop();
         })
 
     }
 
-    pub fn start_listening(&self) {
+    pub fn listen(&self) -> PlayerInput {
         match self._receiver {
-            Some(ref receiver) => receiver.try_recv(),
-            None => panic!("!!")
+            Some(ref receiver) => {
+                match receiver.try_recv() {
+                    Ok(value) => return value,
+                    Err(error) => return PlayerInput::Invalid, //todo check this
+                }
+            },
+            None => panic!("No receiver to use!")
         };
     }
     pub fn change_random_tile(&self) {

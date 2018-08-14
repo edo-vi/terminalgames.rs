@@ -79,6 +79,7 @@ impl Renderer {
         }
         endwin();
     }
+
     pub fn render_board(&self, window: &Window, board: &Board) {
         let Dimensions(x,y): Dimensions = *board.dimensions();
         window.erase();

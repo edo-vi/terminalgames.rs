@@ -11,14 +11,12 @@ pub enum PlayerInput {
 }
 
 pub struct Input {
-    _sender: Sender<PlayerInput>,
     _valid_keys: Vec<char>
 }
 
 impl Input {
-    pub fn new(valid_keys: &[char], sender: Sender<PlayerInput>) -> Self {
+    pub fn new(valid_keys: &[char]) -> Self {
         Input {
-            _sender: sender,
             _valid_keys: Input::vectorize(valid_keys)
         }
     }
@@ -27,10 +25,7 @@ impl Input {
         self._valid_keys = Input::vectorize(valid_keys);
     }
 
-    pub fn set_sender(&mut self, sender: Sender<PlayerInput>) {
-        self._sender = sender;
-    }
-    pub fn get_player_input(&self, window: &Window) {
+    pub fn get_player_input(&self, window: &Window) -> PlayerInput {
         window.keypad(true);
         window.nodelay(true);
         noecho();
@@ -38,7 +33,7 @@ impl Input {
         let key = window.getch();
         window.refresh();
 
-        let res= match key {
+        match key {
             None => PlayerInput::Invalid,
             Some(v) => {
                 match v {
@@ -52,8 +47,7 @@ impl Input {
                     _ => PlayerInput::Invalid
                 }
             }
-        };
-        if res!=PlayerInput::Invalid {self._sender.send(res);};
+        }
     }
 
     fn vectorize(keys: &[char]) -> Vec<char> {
