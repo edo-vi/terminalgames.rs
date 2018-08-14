@@ -16,7 +16,8 @@ fn main() {
     let dur = time::Duration::from_millis(30);
     loop {
         game.change_random_tile();
-        thread::sleep(dur)
+        thread::sleep(dur);
+        game.start_listening();
     }
 
 }

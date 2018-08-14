@@ -1,22 +1,28 @@
 pub mod board;
+extern crate pancurses;
 extern crate rand;
 
 use std::sync::{RwLock, LockResult, RwLockWriteGuard, RwLockReadGuard, Arc};
 use game::board::{Board, Tile, Dimensions, BoardError, Area};
-use std::thread;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use interface::{Interface};
-use std::thread::JoinHandle;
+use std::thread;
+use std::time;
 use self::rand::Rng;
+use std::sync::mpsc::{channel, Receiver};
+use std::thread::JoinHandle;
+use self::pancurses::{Input as PancursesInput};
+use interface::input::PlayerInput;
 
 pub struct Game {
-    _board: Arc<RwLock<Board>>
+    _board: Arc<RwLock<Board>>,
+    _receiver: Option<Receiver<PlayerInput>>
 }
 
 impl Game {
     pub fn new() -> Self {
-        Game {_board: Arc::new(RwLock::new(Default::default()))}
+        Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None}
     }
 
     pub fn set_board(&mut self, tiles: Area, dimensions: Dimensions) {
@@ -32,16 +38,26 @@ impl Game {
         self._board.deref()
     }
 
-    pub fn begin_rendering(&self, interval: u32, valid_keys: [char;2]) -> JoinHandle<()> {
+    pub fn begin_rendering(&mut self, interval: u32, valid_keys: [char;2]) -> JoinHandle<()> {
         let pointer=Arc::clone(&self._board);
+        let (sender,receiver) = channel();
+        self._receiver = Some(receiver);
+
         thread::spawn(move || {
             let mut interface = Interface::new(pointer);
-            interface.new_renderer(interval, &valid_keys);
+            interface.new_renderer(interval);
+            interface.new_input(&valid_keys, sender);
             interface.render_loop();
         })
 
     }
 
+    pub fn start_listening(&self) {
+        match self._receiver {
+            Some(ref receiver) => receiver.try_recv(),
+            None => panic!("!!")
+        };
+    }
     pub fn change_random_tile(&self) {
         let mut guard = self._get_write_lock();
         let board: &mut Board = guard.deref_mut();

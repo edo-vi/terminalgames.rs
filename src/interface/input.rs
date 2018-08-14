@@ -1,1 +1,76 @@
-pub struct Input;
+use std::sync::mpsc::{channel, Sender};
+use super::pancurses::{Input as PancursesInput, noecho};
+use super::pancurses::half_delay;
+use super::pancurses::Window;
+
+#[derive(PartialEq)]
+pub enum PlayerInput {
+    Arrow(PancursesInput),
+    Character(char),
+    Invalid
+}
+
+pub struct Input {
+    _sender: Sender<PlayerInput>,
+    _valid_keys: Vec<char>
+}
+
+impl Input {
+    pub fn new(valid_keys: &[char], sender: Sender<PlayerInput>) -> Self {
+        Input {
+            _sender: sender,
+            _valid_keys: Input::vectorize(valid_keys)
+        }
+    }
+
+    pub fn set_keys(&mut self, valid_keys: &[char]) {
+        self._valid_keys = Input::vectorize(valid_keys);
+    }
+
+    pub fn set_sender(&mut self, sender: Sender<PlayerInput>) {
+        self._sender = sender;
+    }
+    pub fn get_player_input(&self, window: &Window) {
+        window.keypad(true);
+        window.nodelay(true);
+        noecho();
+
+        let key = window.getch();
+        window.refresh();
+
+        let res= match key {
+            None => PlayerInput::Invalid,
+            Some(v) => {
+                match v {
+                    PancursesInput::KeyLeft|PancursesInput::KeyRight|PancursesInput::KeyDown|PancursesInput::KeyUp => PlayerInput::Arrow(v),
+                    PancursesInput::Character(c) => {
+                        match self._is_key_valid(c) {
+                            true => PlayerInput::Character(c),
+                            false => PlayerInput::Invalid
+                        }
+                    }
+                    _ => PlayerInput::Invalid
+                }
+            }
+        };
+        if res!=PlayerInput::Invalid {self._sender.send(res);};
+    }
+
+    fn vectorize(keys: &[char]) -> Vec<char> {
+        keys.iter().map(|a| *a).collect()
+    }
+
+    fn _is_key_valid(&self, key: char) -> bool {
+        if self._valid_keys.contains(&key) {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn populate_valid_keys(&mut self, keys: &[char]) {
+        for a in keys.iter() {
+            self._valid_keys.push(*a);
+        }
+    }
+}

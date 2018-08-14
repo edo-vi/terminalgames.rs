@@ -5,24 +5,16 @@ use std::{thread, time};
 use game::board::Dimensions;
 use game::board::Tile;
 
-
-pub enum PlayerInput {
-    Arrow(PancursesInput),
-    Character(char),
-    Invalid
-}
-
 pub struct Renderer {
     _interval: u32,
-    _valid_keys: Vec<char>,
 }
 
 
 impl Renderer {
-    pub (in interface) fn new(interval: u32, valid_keys: &[char]) -> Self {
+    pub (in interface) fn new(interval: u32) -> Self {
         Renderer {
             _interval: interval,
-            _valid_keys: Renderer::vectorize(valid_keys),
+
         }
     }
 
@@ -34,51 +26,6 @@ impl Renderer {
         self._interval=interval;
     }
 
-    pub fn set_keys(&mut self, valid_keys: &[char]) {
-        self._valid_keys = Renderer::vectorize(valid_keys);
-    }
-
-    pub fn get_player_input(&self, window: &Window) -> PlayerInput {
-        window.keypad(true);
-        window.refresh();
-        half_delay(3);
-        let key = window.getch();
-
-
-        match key {
-            None => PlayerInput::Invalid,
-            Some(v) => {
-                match v {
-                    PancursesInput::KeyLeft|PancursesInput::KeyRight|PancursesInput::KeyDown|PancursesInput::KeyUp => PlayerInput::Arrow(v),
-                    PancursesInput::Character(c) => {
-                        match self._is_key_valid(c) {
-                            true => PlayerInput::Character(c),
-                            false => PlayerInput::Invalid
-                        }
-                    }
-                    _ => PlayerInput::Invalid
-                }
-            }
-        }
-    }
-
-    fn vectorize(keys: &[char]) -> Vec<char> {
-        keys.iter().map(|a| *a).collect()
-    }
-
-    fn _is_key_valid(&self, key: char) -> bool {
-        if self._valid_keys.contains(&key) {
-            true
-        } else {
-            false
-        }
-    }
-
-    pub fn populate_valid_keys(&mut self, keys: &[char]) {
-        for a in keys.iter() {
-            self._valid_keys.push(*a);
-        }
-    }
     ///Random tests of pancurses library
     pub fn render_border(&self, window: &Window) {
         let dur = time::Duration::from_millis(self._interval as u64);
