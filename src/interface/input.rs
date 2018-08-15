@@ -6,7 +6,8 @@ use super::pancurses::Window;
 pub enum PlayerInput {
     Arrow(PancursesInput),
     Character(char),
-    Invalid
+    Invalid,
+    None
 }
 
 pub struct Input {
@@ -33,16 +34,19 @@ impl Input {
         window.refresh();
 
         match key {
-            None => PlayerInput::Invalid,
+            None => PlayerInput::None,
             Some(v) => {
                 match v {
-                    PancursesInput::KeyLeft|PancursesInput::KeyRight|PancursesInput::KeyDown|PancursesInput::KeyUp => PlayerInput::Arrow(v),
+                    PancursesInput::KeyLeft|PancursesInput::KeyRight|
+                    PancursesInput::KeyDown|PancursesInput::KeyUp => PlayerInput::Arrow(v),
+
                     PancursesInput::Character(c) => {
                         match self._is_key_valid(c) {
                             true => PlayerInput::Character(c),
                             false => PlayerInput::Invalid
                         }
                     }
+
                     _ => PlayerInput::Invalid
                 }
             }

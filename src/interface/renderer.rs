@@ -1,5 +1,5 @@
 
-use super::pancurses::{endwin, Window, half_delay, flushinp, Input as PancursesInput, ACS_S3, ACS_VLINE};
+use super::pancurses::{endwin, Window, half_delay, flushinp, Input as PancursesInput};
 use super::Board;
 use std::{thread, time};
 use game::board::Dimensions;
@@ -14,7 +14,6 @@ impl Renderer {
     pub (in interface) fn new(interval: u32) -> Self {
         Renderer {
             _interval: interval,
-
         }
     }
 

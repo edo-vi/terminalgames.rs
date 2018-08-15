@@ -11,7 +11,8 @@ pub enum Tile{
     Empty(Option<char>),
     Active(Option<char>),
     Blocking(Option<char>),
-    NonBlocking(Option<char>)
+    NonBlocking(Option<char>),
+    Teleport(Option<char>)
 }
 
 #[derive(Debug)]

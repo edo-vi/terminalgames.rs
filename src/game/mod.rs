@@ -1,4 +1,6 @@
 pub mod board;
+pub mod gamestate;
+
 extern crate pancurses;
 extern crate rand;
 
@@ -66,7 +68,7 @@ impl Game {
             Some(ref receiver) => {
                 match receiver.try_recv() {
                     Ok(value) => return value,
-                    Err(_) => return PlayerInput::Invalid, //todo check this
+                    Err(_) => return PlayerInput::None, //todo check this
                 }
             },
             None => panic!("No receiver to use!")
