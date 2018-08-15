@@ -1,4 +1,5 @@
 extern crate core;
+extern crate uuid;
 
 pub mod game;
 
