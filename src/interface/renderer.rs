@@ -1,5 +1,5 @@
 
-use super::pancurses::{endwin, Window, half_delay, flushinp, Input as PancursesInput};
+use super::pancurses::{endwin, Window, half_delay, flushinp, Input as PancursesInput, ACS_S3, ACS_VLINE};
 use super::Board;
 use std::{thread, time};
 use game::board::Dimensions;
@@ -83,11 +83,28 @@ impl Renderer {
     pub fn render_board(&self, window: &Window, board: &Board) {
         let Dimensions(x,y): Dimensions = *board.dimensions();
         window.erase();
+
         for i in 0..y  {
             for j in 0..x {
                 match *board.get_tile(j as usize +i as usize *x as usize) {
-                    Tile::Empty(_c) => window.addch(' '),
-                    Tile::Border(_c) => window.addch('*'),
+                    Tile::Empty(v) => {
+                        match v{
+                            None => window.addch(' '),
+                            Some(c) => window.addch(c)
+                        }
+                    },
+                    Tile::VBorder(v) => {
+                        match v{
+                            None => window.addch('*'),
+                            Some(c) => window.addch(c)
+                        }
+                    },
+                    Tile::HBorder(v) => {
+                        match v{
+                            None => window.addch('*'),
+                            Some(c) => window.addch(c)
+                        }
+                    },
                     _ => window.addch(' ')
                 };
             }

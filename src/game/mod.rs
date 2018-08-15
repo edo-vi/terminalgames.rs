@@ -36,9 +36,13 @@ impl Game {
         }
     }
 
+    pub fn add_border(&mut self) {
+        let mut guard: RwLockWriteGuard<Board> = self._get_write_lock();
+        guard.deref_mut().set_border();
+    }
     pub fn erase_board(&mut self) {
         //get the write lock over the board. It panics if it is unable to get it
-        let mut guard: RwLockWriteGuard<Board> =self.board().write().unwrap();
+        let mut guard: RwLockWriteGuard<Board> =self._get_write_lock();
         let Dimensions(x,y) = *(guard.deref().dimensions());
         guard.deref_mut().replace_tiles(vec![Tile::Empty(None); x as usize *y as usize]);
     }
@@ -77,7 +81,7 @@ impl Game {
         let mut rng = rand::thread_rng();
         let Dimensions(x,y) = *board.dimensions();
 
-        board.set_tile(rng.gen::<usize>()%(x*y)as usize,Tile::Border(None));
+        board.set_tile(rng.gen::<usize>()%(x*y)as usize,Tile::HBorder(Some('*')));
         board.set_tile(rng.gen::<usize>()%(x*y)as usize,Tile::Empty(None));
     }
 

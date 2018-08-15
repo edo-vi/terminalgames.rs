@@ -11,7 +11,8 @@ fn main() {
     let a: u32 = 32;
     let keys: [char; 4] = ['w','a','s','d'];
     let mut game = Game::new();
-    game.set_board(vec![Tile::Empty(None); 50*20], Dimensions(50, 20));
+    game.set_board(vec![Tile::Empty(None); 30*22], Dimensions(30, 22));
+    game.add_border();
 
     game.begin_rendering(a, keys.clone());
     let dur = time::Duration::from_millis(32);

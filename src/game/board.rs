@@ -6,7 +6,8 @@ pub type Area = Vec<Tile>;
 ///A single tile
 #[derive(Clone)]
 pub enum Tile{
-    Border(Option<char>),
+    HBorder(Option<char>),
+    VBorder(Option<char>),
     Empty(Option<char>),
     Active(Option<char>),
     Blocking(Option<char>),
@@ -70,10 +71,13 @@ impl Board {
         for (i,v) in self._tiles.iter_mut().enumerate() {
         if i/(x as usize)==0 /* first line */
             || i/(x as usize)==y as usize-1 /* last line */
-            || i%(x as usize)==0 /* first tile */
-            || i%(x as usize)==y as usize /* last tile */
             {
-                *v=Tile::Border(Some('*')) //todo
+                *v=Tile::HBorder(Some('*')) //todo
+            }
+        else if i%(x as usize)==0 /* first tile */
+            || i%(x as usize)==x as usize-1 /* last tile */
+            {
+                *v=Tile::VBorder(Some('*'))
             }
         }
     }
