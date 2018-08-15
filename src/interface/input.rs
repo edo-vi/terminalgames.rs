@@ -61,7 +61,7 @@ impl Input {
         }
     }
 
-    pub fn populate_valid_keys(&mut self, keys: &[char]) {
+    pub fn push_valid_keys(&mut self, keys: &[char]) {
         for a in keys.iter() {
             self._valid_keys.push(*a);
         }

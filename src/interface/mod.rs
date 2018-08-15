@@ -28,10 +28,8 @@ impl Interface {
         let win = initscr();
         Interface {_renderer: Option::None, _input: Option::None, _window: win, _board: board, _sender: sender}
     }
-    ///Creates a new Renderer. Accepts [n]! arguments: 'interval',
-    /// which indicates the number of milliseconds that must pass before rendering the screen again,
-    /// and 'valid_keys', immutable borrow of a char array that contains the keyboard characters we
-    /// consider valid (note that the arrow keys are always valid). It also initializes the target window.
+    ///Creates a new Renderer. Accepts only one argument, 'interval',
+    /// which indicates the number of milliseconds that must pass before rendering the screen again.
     pub fn new_renderer(&mut self, interval: u32) {
         match self._renderer {
             None => self._renderer=Some(Renderer::new(interval)),
@@ -49,14 +47,14 @@ impl Interface {
         }
     }
 
-    pub fn renderer(&self) -> &Renderer {
+    fn renderer(&self) -> &Renderer {
         match self._renderer {
             Some(ref renderer) => renderer,
             None => panic!("No renderer")
         }
     }
 
-    pub fn input(&self) -> &Input {
+    fn input(&self) -> &Input {
         match self._input {
             Some(ref input) => input,
             None => panic!("No renderer")
@@ -75,11 +73,11 @@ impl Interface {
 
         let dur = time::Duration::from_millis(renderer.interval() as u64);
         loop {
-            { //gets the read lock
+            {   //gets the read lock
                 let guard: RwLockReadGuard<Board> = self._get_read_lock();
                 //guard.deref returns an immutable borrow to the inner value guarded
                 renderer.render_board(&self._window, guard.deref());
-            } //guard is dropped here
+            }   //guard is dropped here
 
             self._sender.send(input.get_player_input(&self._window)).unwrap();
             thread::sleep(dur);

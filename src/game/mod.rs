@@ -23,7 +23,7 @@ impl Game {
         Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None}
     }
 
-    pub fn board(&self) -> &RwLock<Board> {
+    fn board(&self) -> &RwLock<Board> {
         self._board.deref()
     }
 
@@ -37,10 +37,10 @@ impl Game {
     }
 
     pub fn erase_board(&mut self) {
-        let guard=self.board().write();
-        let mut board: RwLockWriteGuard<Board> = guard.unwrap();
-        let Dimensions(x,y) = *(board.deref().dimensions());
-        board.replace_tiles(vec![Tile::Empty(None); x as usize *y as usize]);
+        //get the write lock over the board. It panics if it is unable to get it
+        let mut guard: RwLockWriteGuard<Board> =self.board().write().unwrap();
+        let Dimensions(x,y) = *(guard.deref().dimensions());
+        guard.deref_mut().replace_tiles(vec![Tile::Empty(None); x as usize *y as usize]);
     }
 
     pub fn begin_rendering(&mut self, interval: u32, valid_keys: [char;4]) -> JoinHandle<()> {

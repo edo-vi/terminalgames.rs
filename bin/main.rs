@@ -19,7 +19,7 @@ fn main() {
         game.change_random_tile();
         thread::sleep(dur);
         match game.listen() {
-            PlayerInput::Character(c) => game.erase_board(),
+            PlayerInput::Character(_c) => game.erase_board(),
             _ => ()
         }
 
