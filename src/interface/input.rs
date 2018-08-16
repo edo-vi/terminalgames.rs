@@ -1,6 +1,7 @@
 use super::pancurses::{Input as PancursesInput, noecho};
 
 use super::pancurses::Window;
+use super::pancurses::flushinp;
 
 #[derive(PartialEq)]
 pub enum PlayerInput {
@@ -26,12 +27,15 @@ impl Input {
     }
 
     pub fn get_player_input(&self, window: &Window) -> PlayerInput {
+
         window.keypad(true);
         window.nodelay(true);
         noecho();
 
         let key = window.getch();
         window.refresh();
+
+        flushinp(); //todo check this
 
         match key {
             None => PlayerInput::None,
@@ -51,6 +55,7 @@ impl Input {
                 }
             }
         }
+
     }
 
     fn vectorize(keys: &[char]) -> Vec<char> {

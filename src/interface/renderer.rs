@@ -58,6 +58,5 @@ impl Renderer {
         }
         window.refresh();
 
-        //endwin(); //todo change, only for debugging
     }
 }

@@ -29,7 +29,7 @@ impl Game {
         self._board.deref()
     }
 
-    pub fn set_board(&mut self, tiles: Area, dimensions: Dimensions) {
+    pub fn new_board(&mut self, tiles: Area, dimensions: Dimensions) {
         match Board::with_tiles(tiles, dimensions) {
             Ok(b) => self._board=Arc::new(RwLock::new(b)),
             Err(e) => match e {

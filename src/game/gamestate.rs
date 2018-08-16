@@ -21,7 +21,7 @@ impl<T> GameStateManager<T> {
     pub fn new() -> Self {
         Default::default()
     }
-    pub fn input(&self) -> &PlayerInput {
+    fn input(&self) -> &PlayerInput {
         &self._input
     }
 
@@ -29,7 +29,7 @@ impl<T> GameStateManager<T> {
         self._input = input;
     }
 
-    fn push_state(&mut self, state: GameState<T>) {
+    fn save_state(&mut self, state: GameState<T>) {
         self._history.push(state);
     }
 }

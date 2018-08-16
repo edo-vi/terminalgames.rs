@@ -73,7 +73,7 @@ impl Board {
         if i/(x as usize)==0 /* first line */
             || i/(x as usize)==y as usize-1 /* last line */
             {
-                *v=Tile::HBorder(Some('*')) //todo
+                *v=Tile::HBorder(Some('*'))
             }
         else if i%(x as usize)==0 /* first tile */
             || i%(x as usize)==x as usize-1 /* last tile */
