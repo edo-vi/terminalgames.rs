@@ -42,6 +42,7 @@ impl Game {
         let mut guard: RwLockWriteGuard<Board> = self._get_write_lock();
         guard.deref_mut().set_border();
     }
+
     pub fn erase_board(&mut self) {
         //get the write lock over the board. It panics if it is unable to get it
         let mut guard: RwLockWriteGuard<Board> =self._get_write_lock();
@@ -49,7 +50,7 @@ impl Game {
         guard.deref_mut().replace_tiles(vec![Tile::Empty(None); x as usize *y as usize]);
     }
 
-    pub fn begin_rendering(&mut self, interval: u32, valid_keys: [char;4]) -> JoinHandle<()> {
+    pub fn begin_rendering(&mut self, interval: u32, valid_keys: [char;5]) -> JoinHandle<()> {
         let pointer=Arc::clone(&self._board);
         let (sender,receiver) = channel();
         self._receiver = Some(receiver);
@@ -60,7 +61,6 @@ impl Game {
             interface.new_input(&valid_keys);
             interface.render_loop();
         })
-
     }
 
     pub fn listen(&self) -> PlayerInput {

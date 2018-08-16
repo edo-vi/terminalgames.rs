@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use game::board::Coordinates;
 use uuid::Uuid;
 
+pub type CategoryMap = HashMap<ActiveCategory, HashMap<Uuid, ActiveObject<T>>>;
+
 enum StatePhase {
     Init,
     Movement,
@@ -12,7 +14,7 @@ enum StatePhase {
 
 pub struct GameStateManager<T> {
     _state: StatePhase,
-    _current: GameState<T>,
+    _current: Option<GameState<T>>,
     _history: Vec<GameState<T>>,
     _input: PlayerInput
 }
@@ -32,6 +34,11 @@ impl<T> GameStateManager<T> {
     fn save_state(&mut self, state: GameState<T>) {
         self._history.push(state);
     }
+
+    fn last_state(&self) -> Option<&GameState<T>> {
+        self._history.last()
+    }
+
 }
 
 impl<T> Default for GameStateManager<T> {
@@ -45,9 +52,8 @@ impl<T> Default for GameStateManager<T> {
     }
 }
 
-
 pub struct GameState<T> {
-    objects: HashMap<Uuid, ActiveObject<T>>,
+    objects: CategoryMap,
     end: bool,
 }
 
@@ -60,18 +66,21 @@ impl<T> Default for GameState<T> {
     }
 }
 
+enum ActiveCategory {
+    Main,
+    Enemy
+}
+
+pub trait Active {
+    fn handle_input(&mut self, input: &PlayerInput);
+    fn category(&self) -> ActiveCategory;
+    fn set_category(&mut self);
+    fn id(&self);
+}
 
 struct ActiveObject<T> {
     _id : Uuid,
-    _position: Option<T>
-}
-
-impl<T> Default for ActiveObject<T> {
-    fn default() -> Self {
-        ActiveObject {
-            _id: Uuid::new_v4(),
-            _position: None
-        }
-    }
+    _category: ActiveCategory,
+    _position: T
 }
 
