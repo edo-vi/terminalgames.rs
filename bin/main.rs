@@ -7,7 +7,6 @@ use terminalgames::game::board::Tile;
 use terminalgames::game::board::Dimensions;
 use std::time;
 use std::thread;
-use self::rand::Rng;
 use terminalgames::interface::input::PlayerInput;
 use pancurses::initscr;
 use pancurses::endwin;

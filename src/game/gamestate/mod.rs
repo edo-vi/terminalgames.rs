@@ -1,27 +1,50 @@
+pub mod gamestate;
+pub mod active;
+
 use interface::input::PlayerInput;
 use std::collections::HashMap;
-use game::board::Coordinates;
 use uuid::Uuid;
+use game::gamestate::gamestate::GameState;
+use game::gamestate::active::ActiveCategory;
+use game::gamestate::active::ActiveObject;
 
-pub type CategoryMap = HashMap<ActiveCategory, HashMap<Uuid, ActiveObject<T>>>;
+pub type CategoryMap<T> = HashMap<ActiveCategory, HashMap<Uuid, ActiveObject<T>>>;
 
 enum StatePhase {
     Init,
     Movement,
-    Action,
-    Map
+    Action
+}
+
+pub struct GameOptions {
+    dim_x: u32,
+    dim_y: u32,
+}
+
+impl Default for GameOptions {
+    fn default() -> Self {
+        GameOptions {
+            dim_x: 0,
+            dim_y: 0
+        }
+    }
 }
 
 pub struct GameStateManager<T> {
     _state: StatePhase,
     _current: Option<GameState<T>>,
     _history: Vec<GameState<T>>,
-    _input: PlayerInput
+    _input: PlayerInput,
+    _options: GameOptions
 }
 
 impl<T> GameStateManager<T> {
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new(_options: GameOptions) -> Self {
+        GameStateManager {
+            _options,
+            ..Default::default()
+
+        }
     }
     fn input(&self) -> &PlayerInput {
         &self._input
@@ -45,42 +68,12 @@ impl<T> Default for GameStateManager<T> {
     fn default() -> Self {
         GameStateManager {
             _state: StatePhase::Init,
-            _current: Default::default(),
+            _current: None,
             _history: Vec::new(),
-            _input: PlayerInput::None
+            _input: PlayerInput::None,
+            _options: Default::default()
         }
     }
 }
 
-pub struct GameState<T> {
-    objects: CategoryMap,
-    end: bool,
-}
-
-impl<T> Default for GameState<T> {
-    fn default() -> Self {
-        GameState {
-            objects: HashMap::new(),
-            end: false
-        }
-    }
-}
-
-enum ActiveCategory {
-    Main,
-    Enemy
-}
-
-pub trait Active {
-    fn handle_input(&mut self, input: &PlayerInput);
-    fn category(&self) -> ActiveCategory;
-    fn set_category(&mut self);
-    fn id(&self);
-}
-
-struct ActiveObject<T> {
-    _id : Uuid,
-    _category: ActiveCategory,
-    _position: T
-}
 

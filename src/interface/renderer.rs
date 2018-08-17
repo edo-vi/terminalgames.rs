@@ -1,7 +1,6 @@
 
-use super::pancurses::{endwin, Window, half_delay, flushinp, Input as PancursesInput};
+use super::pancurses::{Window};
 use super::Board;
-use std::{thread, time};
 use game::board::Dimensions;
 use game::board::Tile;
 
