@@ -1,20 +1,16 @@
 pub mod gamestate;
-pub mod active;
+pub mod object;
 
 use interface::input::PlayerInput;
 use std::collections::HashMap;
 use uuid::Uuid;
 use game::gamestate::gamestate::GameState;
-use game::gamestate::active::ActiveCategory;
-use game::gamestate::active::ActiveObject;
+use game::gamestate::object::ObjectCategory;
+use game::gamestate::object::Object;
+use game::gamestate::object::Point;
 
-pub type CategoryMap<T> = HashMap<ActiveCategory, HashMap<Uuid, ActiveObject<T>>>;
+pub type CategoryMap<T> = HashMap<ObjectCategory, HashMap<Uuid, Object<T>>>;
 
-enum StatePhase {
-    Init,
-    Movement,
-    Action
-}
 
 pub struct GameOptions {
     dim_x: u32,
@@ -30,22 +26,22 @@ impl Default for GameOptions {
     }
 }
 
+enum StatePhase {
+    Start,
+    Movement,
+    Action
+}
+
 pub struct GameStateManager<T> {
-    _state: StatePhase,
-    _current: Option<GameState<T>>,
+    _phase: StatePhase,
+    _current: GameState<T>,
     _history: Vec<GameState<T>>,
     _input: PlayerInput,
     _options: GameOptions
 }
 
 impl<T> GameStateManager<T> {
-    pub fn new(_options: GameOptions) -> Self {
-        GameStateManager {
-            _options,
-            ..Default::default()
 
-        }
-    }
     fn input(&self) -> &PlayerInput {
         &self._input
     }
@@ -64,16 +60,28 @@ impl<T> GameStateManager<T> {
 
 }
 
-impl<T> Default for GameStateManager<T> {
+impl GameStateManager<Point> {
+    pub fn new(_options: GameOptions) -> Self {
+        GameStateManager {
+            _phase: StatePhase::Start,
+            _current: GameState::<Point>::with_objects(),
+            _history : Vec::new(),
+            _input: PlayerInput::None,
+            _options,
+
+        }
+    }
+}
+/*impl<T> Default for GameStateManager<T> {
     fn default() -> Self {
         GameStateManager {
-            _state: StatePhase::Init,
+            _phase: StatePhase::Init,
             _current: None,
             _history: Vec::new(),
             _input: PlayerInput::None,
             _options: Default::default()
         }
     }
-}
+}*/
 
 
