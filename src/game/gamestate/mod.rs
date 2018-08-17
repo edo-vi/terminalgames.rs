@@ -12,7 +12,7 @@ use game::board::Dimensions;
 
 pub type CategoryMap<T> = HashMap<ObjectCategory, HashMap<Uuid, Object<T>>>;
 
-
+#[derive(Clone)]
 pub struct GameOptions {
     pub dimensions: Dimensions
 }

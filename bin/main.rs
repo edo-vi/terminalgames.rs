@@ -19,6 +19,7 @@ fn main() {
     game.add_border();
 
     game.begin_rendering(a, keys.clone());
+    game.begin_logic();
     let dur = time::Duration::from_millis(32);
     let mut string = String::new();
     loop {

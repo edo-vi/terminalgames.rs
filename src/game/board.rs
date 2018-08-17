@@ -15,7 +15,7 @@ pub enum Tile{
     Teleport(Option<char>)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Dimensions(pub u16,pub u16);
 
 impl PartialEq for Dimensions{

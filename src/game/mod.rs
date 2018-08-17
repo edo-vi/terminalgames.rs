@@ -10,6 +10,7 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 use interface::{Interface};
 use std::thread;
+use std::clone::Clone;
 use self::rand::Rng;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread::JoinHandle;
@@ -21,13 +22,14 @@ use game::gamestate::GameOptions;
 pub struct Game {
     _board: Arc<RwLock<Board>>,
     _receiver: Option<Receiver<PlayerInput>>,
-    _state_manager: Option<GameStateManager<Point>>
+    _state_manager: Option<GameStateManager<Point>>,
+    _game_options: Option<GameOptions>
 }
 
 impl Game {
     pub fn new() -> Self {
-        Game {_board: Arc::new(RwLock::new(Default::default())),
-            _receiver: Option::None, _state_manager: None}
+        Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None,
+            _state_manager: Option::None, _game_options: Option::None}
     }
 
     fn board(&self) -> &RwLock<Board> {
@@ -35,8 +37,12 @@ impl Game {
     }
 
     pub fn new_board(&mut self, tiles: Area, dimensions: Dimensions) {
+        let dim=dimensions.clone();
         match Board::with_tiles(tiles, dimensions) {
-            Ok(b) => self._board=Arc::new(RwLock::new(b)),
+            Ok(b) => {
+                self._board=Arc::new(RwLock::new(b));
+                self._game_options = Some(GameOptions { dimensions: dim });
+            },
             Err(e) => match e {
                 BoardError::WrongLen(mes) => panic!("Couldn't set the board for the game: {}", mes)
             }
@@ -71,9 +77,11 @@ impl Game {
     pub fn begin_logic(&mut self) {
         match self._state_manager {
             None => {
-                let guard = self._get_read_lock();
-                let dim: &Dimensions = guard.deref().dimensions();
-                self._state_manager = Some(GameStateManager::new(GameOptions{dimensions:dim}))
+                match self._game_options {
+                    Some(ref options) => self._state_manager = Some(GameStateManager::new(options.clone())),
+                    None => panic!("No options to pass to gamestatemanager!")
+                }
+
             },
             _ => ()
         };
