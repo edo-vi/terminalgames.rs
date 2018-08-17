@@ -14,15 +14,20 @@ use self::rand::Rng;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread::JoinHandle;
 use interface::input::PlayerInput;
+use game::gamestate::GameStateManager;
+use game::gamestate::object::Point;
+use game::gamestate::GameOptions;
 
 pub struct Game {
     _board: Arc<RwLock<Board>>,
-    _receiver: Option<Receiver<PlayerInput>>
+    _receiver: Option<Receiver<PlayerInput>>,
+    _state_manager: Option<GameStateManager<Point>>
 }
 
 impl Game {
     pub fn new() -> Self {
-        Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None}
+        Game {_board: Arc::new(RwLock::new(Default::default())),
+            _receiver: Option::None, _state_manager: None}
     }
 
     fn board(&self) -> &RwLock<Board> {
@@ -63,6 +68,16 @@ impl Game {
         })
     }
 
+    pub fn begin_logic(&mut self) {
+        match self._state_manager {
+            None => {
+                let guard = self._get_read_lock();
+                let dim: &Dimensions = guard.deref().dimensions();
+                self._state_manager = Some(GameStateManager::new(GameOptions{dimensions:dim}))
+            },
+            _ => ()
+        };
+    }
     pub fn listen(&self) -> PlayerInput {
         match self._receiver {
             Some(ref receiver) => {

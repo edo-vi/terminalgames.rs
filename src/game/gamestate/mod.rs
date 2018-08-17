@@ -8,20 +8,19 @@ use game::gamestate::gamestate::GameState;
 use game::gamestate::object::ObjectCategory;
 use game::gamestate::object::Object;
 use game::gamestate::object::Point;
+use game::board::Dimensions;
 
 pub type CategoryMap<T> = HashMap<ObjectCategory, HashMap<Uuid, Object<T>>>;
 
 
 pub struct GameOptions {
-    dim_x: u32,
-    dim_y: u32,
+    pub dimensions: Dimensions
 }
 
 impl Default for GameOptions {
     fn default() -> Self {
         GameOptions {
-            dim_x: 0,
-            dim_y: 0
+            dimensions: Dimensions(0,0)
         }
     }
 }
