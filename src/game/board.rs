@@ -15,6 +15,20 @@ pub enum Tile{
     Teleport(Option<char>)
 }
 
+impl Tile {
+    fn tiles() -> Vec<Tile> {//todo remove hardcoded
+        let mut new_vec=Vec::new();
+        new_vec.push(Tile::HBorder(None));
+        new_vec.push(Tile::VBorder(None));
+        new_vec.push(Tile::Empty(None));
+        new_vec.push(Tile::Active(None));
+        new_vec.push(Tile::Blocking(None));
+        new_vec.push(Tile::NonBlocking(None));
+        new_vec.push(Tile::Teleport(None));
+
+        new_vec
+    }
+}
 #[derive(Debug, Clone)]
 pub struct Dimensions(pub u16,pub u16);
 

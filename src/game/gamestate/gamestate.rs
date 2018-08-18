@@ -3,7 +3,9 @@ use game::gamestate::CategoryMap;
 use game::gamestate::object::{ObjectFactory, ObjectCategory, Object};
 use game::gamestate::object::Point;
 use game::gamestate::object::Active;
+use std::clone::Clone;
 
+#[derive(Clone)]
 pub struct GameState<T> {
     _objects: CategoryMap<T>,
     _end: bool,
@@ -45,7 +47,7 @@ impl GameState<Point> {
 impl<T> Default for GameState<T> {
     fn default() -> Self {
         GameState {
-            _objects: HashMap::new(),
+            _objects: CategoryMap::new(),
             _end: false
         }
     }

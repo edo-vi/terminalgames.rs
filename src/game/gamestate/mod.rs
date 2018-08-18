@@ -9,8 +9,28 @@ use game::gamestate::object::ObjectCategory;
 use game::gamestate::object::Object;
 use game::gamestate::object::Point;
 use game::board::Dimensions;
+use game::board::Tile;
+use game::board::Coordinates;
+use std::clone::Clone;
+
+pub type Changes = (Coordinates, Tile);
 
 pub type CategoryMap<T> = HashMap<ObjectCategory, HashMap<Uuid, Object<T>>>;
+
+pub trait CategoryMapNew {
+    fn new() -> Self;
+}
+
+impl<T> CategoryMapNew for CategoryMap<T> {
+    fn new() -> Self {
+        let mut newhash: CategoryMap<T> =HashMap::new();
+        for cat in ObjectCategory::categories() {
+            newhash.insert(cat,HashMap::new());
+        }
+
+        newhash
+    }
+}
 
 #[derive(Clone)]
 pub struct GameOptions {
@@ -58,7 +78,10 @@ impl<T> GameStateManager<T> {
     }
 
     pub fn game_loop(&mut self, input: PlayerInput) {
+        //save input
         self.set_input(input);
+
+
     }
 
 
@@ -66,10 +89,13 @@ impl<T> GameStateManager<T> {
 
 impl GameStateManager<Point> {
     pub fn new(_options: GameOptions) -> Self {
+        let current = GameState::<Point>::with_objects();
+        let mut history = Vec::new();
+        history.push(current);
         GameStateManager {
             _phase: StatePhase::Start,
-            _current: GameState::<Point>::with_objects(),
-            _history : Vec::new(),
+            _current: GameState::new(),
+            _history : history,
             _input: PlayerInput::None,
             _options,
 

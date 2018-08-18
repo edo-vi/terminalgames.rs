@@ -5,7 +5,7 @@ use game::board::Coordinates;
 pub type Point = Coordinates;
 pub type Coords = Vec<Coordinates>;
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub enum ObjectCategory {
     Main,
     Enemy,
@@ -34,6 +34,7 @@ pub trait Active {
     fn set_id(&mut self, id: Uuid);
 }
 
+#[derive(Clone)]
 pub struct Object<T> {
     _id : Uuid,
     _category: ObjectCategory,

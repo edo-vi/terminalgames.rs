@@ -116,8 +116,8 @@ impl Game {
     }
 
     pub fn begin_game_loop(&mut self) {
-        //Initialize the gamestatemanager
-        let mut options: GameOptions = (self.options().clone());
+        //Initialize the game state manager
+        let mut options: GameOptions = self.options().clone();
         self.set_state_manager(GameStateManager::new(options));
 
         //game logic loop
@@ -129,7 +129,7 @@ impl Game {
                 break;
             }
 
-            //do the update logic loop using the playerinput
+            //do the update logic loop using the player input
 
             self.mut_state_manager().game_loop(input_received);
 
