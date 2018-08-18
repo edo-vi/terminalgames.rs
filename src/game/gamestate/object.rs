@@ -27,11 +27,13 @@ impl ObjectCategory {
 }
 
 pub trait Active {
+    type Pos;
     fn handle_input(&mut self, input: &PlayerInput);
     fn category(&self) -> &ObjectCategory;
     fn set_category(&mut self, category: ObjectCategory);
     fn id(&self) -> &Uuid;
     fn set_id(&mut self, id: Uuid);
+    fn position(&self) -> &Self::Pos;
 }
 
 #[derive(Clone)]
@@ -42,6 +44,7 @@ pub struct Object<T> {
 }
 
 impl<T> Active for Object<T> {
+    type Pos=T;
     fn handle_input(&mut self, input: &PlayerInput) {}//todo
 
     fn category(&self) -> &ObjectCategory {
@@ -57,6 +60,7 @@ impl<T> Active for Object<T> {
     fn set_id(&mut self, id: Uuid) {
         self._id=id;
     }
+    fn position(&self) -> &Self::Pos {&self._position}
 
 }
 

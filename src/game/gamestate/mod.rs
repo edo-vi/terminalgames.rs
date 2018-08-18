@@ -12,7 +12,7 @@ use game::board::Dimensions;
 use game::board::Tile;
 use game::board::Coordinates;
 use std::clone::Clone;
-
+use game::gamestate::object::Active;
 pub type Changes = (Coordinates, Tile);
 
 pub type CategoryMap<T> = HashMap<ObjectCategory, HashMap<Uuid, Object<T>>>;
@@ -56,7 +56,8 @@ pub struct GameStateManager<T> {
     _current: GameState<T>,
     _history: Vec<GameState<T>>,
     _input: PlayerInput,
-    _options: GameOptions
+    _options: GameOptions,
+    _changes: Option<Vec<Changes>>
 }
 
 impl<T> GameStateManager<T> {
@@ -73,16 +74,21 @@ impl<T> GameStateManager<T> {
         self._history.push(state);
     }
 
-    fn last_state(&self) -> Option<&GameState<T>> {
-        self._history.last()
+    fn last_state(&self) -> &GameState<T> {
+        match self._history.last() {
+            Some(ref state) => state,
+            None => panic!("History is empty, no last state to extract!")
+        }
     }
-
+    pub fn changes(&self) -> &Option<Vec<Changes>> {
+        &self._changes
+    }
     pub fn game_loop(&mut self, input: PlayerInput) {
         //save input
         self.set_input(input);
 
-
     }
+
 
 
 }
@@ -92,27 +98,31 @@ impl GameStateManager<Point> {
         let current = GameState::<Point>::with_objects();
         let mut history = Vec::new();
         history.push(current);
-        GameStateManager {
+
+        let mut new_gsm= GameStateManager {
             _phase: StatePhase::Start,
             _current: GameState::new(),
             _history : history,
             _input: PlayerInput::None,
             _options,
-
+            _changes: None
+        };
+        // this makes sense because when instantiating a new game state manager the initial state is
+        // set, and this state is to be considered as a change from the previous null state, when
+        // the board is still to be rendered
+        new_gsm.lasts_as_changes();
+        new_gsm
+    }
+    //this requires a concrete type (Point or Coords)
+    pub fn lasts_as_changes(&mut self) {
+        let mut changes: Vec<Changes> = Vec::new();
+        for obj in self.last_state().all_objects() {
+            changes.push((obj.position().clone(),Tile::Active(None)));
         }
+        self._changes=Some(changes);
     }
 
 }
-/*impl<T> Default for GameStateManager<T> {
-    fn default() -> Self {
-        GameStateManager {
-            _phase: StatePhase::Init,
-            _current: None,
-            _history: Vec::new(),
-            _input: PlayerInput::None,
-            _options: Default::default()
-        }
-    }
-}*/
+
 
 

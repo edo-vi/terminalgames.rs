@@ -49,6 +49,12 @@ impl Renderer {
                             Some(c) => window.addch(c)
                         }
                     },
+                    Tile::Active(v) => {
+                        match v{
+                            None => window.addch('^'),
+                            Some(c) => window.addch(c)
+                        }
+                    },
                     _ => window.addch(' ')
                 };
             }

@@ -3,7 +3,6 @@ use game::gamestate::CategoryMap;
 use game::gamestate::object::{ObjectFactory, ObjectCategory, Object};
 use game::gamestate::object::Point;
 use game::gamestate::object::Active;
-use std::clone::Clone;
 
 #[derive(Clone)]
 pub struct GameState<T> {
@@ -15,7 +14,17 @@ impl<T> GameState<T> {
     pub fn new() -> GameState<T> {
         Default::default()
     }
+    pub fn all_objects(&self) -> Vec<&Object<T>> {
+        let mut objects=Vec::new();
+        //iterate over each hashmap of different categories
+        for maps in self._objects.values() {
+            for object in maps.values() {
+                objects.push(object);
+            }
+        }
 
+        objects
+    }
 }
 
 impl GameState<Point> {

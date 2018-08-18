@@ -19,6 +19,7 @@ use game::gamestate::GameStateManager;
 use game::gamestate::object::Point;
 use game::gamestate::GameOptions;
 use std::mem;
+use game::gamestate::Changes;
 
 pub struct Game {
     _board: Arc<RwLock<Board>>,
@@ -117,7 +118,7 @@ impl Game {
 
     pub fn begin_game_loop(&mut self) {
         //Initialize the game state manager
-        let mut options: GameOptions = self.options().clone();
+        let options: GameOptions = self.options().clone();
         self.set_state_manager(GameStateManager::new(options));
 
         //game logic loop
@@ -138,6 +139,7 @@ impl Game {
         }
 
     }
+
     pub fn listen(&self) -> PlayerInput {
         match self._receiver {
             Some(ref receiver) => {
@@ -151,7 +153,19 @@ impl Game {
     }
 
     pub fn map_state(&mut self) {
-        let state = self.state_manager();
+        let changes: &Option<Vec<Changes>> = self.state_manager().changes();
+        match changes {
+            None => (),
+            //If there are some changes, map it to the board
+            Some(changes) => {
+                let mut guard= self._get_write_lock();
+                let board= guard.deref_mut();
+                for ch in changes {
+                    let index: usize = board.as_point(&ch.0) as usize;
+                    board.set_tile(index, ch.1.clone());
+                }
+            }
+        }
     }
     pub fn change_random_tile(&self) {
         let mut guard = self._get_write_lock();

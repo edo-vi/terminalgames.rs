@@ -39,7 +39,7 @@ impl PartialEq for Dimensions{
 }
 impl Eq for Dimensions {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Coordinates(pub u16,pub u16);
 
 impl PartialEq for Coordinates{
