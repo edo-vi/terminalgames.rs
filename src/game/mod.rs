@@ -57,11 +57,34 @@ impl Game {
         }
     }
 
+    pub fn mut_state_manager(&mut self) -> &mut GameStateManager<Point> {
+        match self._state_manager {
+            Some(ref mut manager) => manager,
+            None => panic!("No game state manager to unwrap")
+        }
+    }
+
     pub fn set_state_manager(&mut self, manager: GameStateManager<Point>) {
         match self._state_manager {
             None => self._state_manager = Some(manager),
             Some(ref mut old_manager) => {
                 mem::replace(old_manager,manager);
+            }
+        }
+    }
+
+    pub fn options(&self) -> &GameOptions {
+        match self._game_options {
+            Some(ref options) => options,
+            None => panic!("No game options to unwrap!")
+        }
+    }
+
+    pub fn set_options(&mut self, options: GameOptions) {
+        match self._game_options {
+            None => self._game_options=Some(options),
+            Some(ref mut old_options) => {
+                mem::replace(old_options, options);
             }
         }
     }
@@ -82,7 +105,7 @@ impl Game {
         let pointer=Arc::clone(&self._board);
         //setting up the channel: game is the receiver whereas interface is the sender
         let (sender,receiver) = channel();
-        self._receiver = Some(receiver);
+        self._receiver = Some(receiver); //todo add setter
 
         thread::spawn(move || {
             let mut interface = Interface::new(pointer, sender);
@@ -94,10 +117,8 @@ impl Game {
 
     pub fn begin_game_loop(&mut self) {
         //Initialize the gamestatemanager
-        match self._game_options.as_mut() {
-            Some(options) => self.set_state_manager(GameStateManager::new(options.clone())),
-            None => panic!("No options to pass to gamestatemanager!")
-        }
+        let mut options: GameOptions = (self.options().clone());
+        self.set_state_manager(GameStateManager::new(options));
 
         //game logic loop
         loop {
@@ -110,8 +131,7 @@ impl Game {
 
             //do the update logic loop using the playerinput
 
-            let mut manager=self.state_manager();
-            &mut manager.game_loop(input_received);
+            self.mut_state_manager().game_loop(input_received);
 
             self.map_state()
 
