@@ -18,6 +18,7 @@ use interface::input::PlayerInput;
 use game::gamestate::GameStateManager;
 use game::gamestate::object::Point;
 use game::gamestate::GameOptions;
+use std::mem;
 
 pub struct Game {
     _board: Arc<RwLock<Board>>,
@@ -49,6 +50,21 @@ impl Game {
         }
     }
 
+    pub fn state_manager(&self) -> &GameStateManager<Point> {
+        match self._state_manager {
+            Some(ref manager) => manager,
+            None => panic!("No game state manager to unwrap")
+        }
+    }
+
+    pub fn set_state_manager(&mut self, manager: GameStateManager<Point>) {
+        match self._state_manager {
+            None => self._state_manager = Some(manager),
+            Some(ref mut old_manager) => {
+                mem::replace(old_manager,manager);
+            }
+        }
+    }
     pub fn add_border(&mut self) {
         let mut guard: RwLockWriteGuard<Board> = self._get_write_lock();
         guard.deref_mut().set_border();
@@ -62,7 +78,9 @@ impl Game {
     }
 
     pub fn begin_rendering(&mut self, interval: u32, valid_keys: [char;5]) -> JoinHandle<()> {
+        //pointer to the board, shared between interface and game
         let pointer=Arc::clone(&self._board);
+        //setting up the channel: game is the receiver whereas interface is the sender
         let (sender,receiver) = channel();
         self._receiver = Some(receiver);
 
@@ -74,17 +92,31 @@ impl Game {
         })
     }
 
-    pub fn begin_logic(&mut self) {
-        match self._state_manager {
-            None => {
-                match self._game_options {
-                    Some(ref options) => self._state_manager = Some(GameStateManager::new(options.clone())),
-                    None => panic!("No options to pass to gamestatemanager!")
-                }
+    pub fn begin_game_loop(&mut self) {
+        //Initialize the gamestatemanager
+        match self._game_options.as_mut() {
+            Some(options) => self.set_state_manager(GameStateManager::new(options.clone())),
+            None => panic!("No options to pass to gamestatemanager!")
+        }
 
-            },
-            _ => ()
-        };
+        //game logic loop
+        loop {
+            //get the player input
+            let input_received=self.listen();
+
+            if input_received==PlayerInput::Character('e') {
+                break;
+            }
+
+            //do the update logic loop using the playerinput
+
+            let mut manager=self.state_manager();
+            &mut manager.game_loop(input_received);
+
+            self.map_state()
+
+        }
+
     }
     pub fn listen(&self) -> PlayerInput {
         match self._receiver {
@@ -98,6 +130,9 @@ impl Game {
         };
     }
 
+    pub fn map_state(&mut self) {
+        let state = self.state_manager();
+    }
     pub fn change_random_tile(&self) {
         let mut guard = self._get_write_lock();
         let board: &mut Board = guard.deref_mut();

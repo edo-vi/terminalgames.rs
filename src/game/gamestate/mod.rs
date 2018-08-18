@@ -57,6 +57,11 @@ impl<T> GameStateManager<T> {
         self._history.last()
     }
 
+    pub fn game_loop(&mut self, input: PlayerInput) {
+        self.set_input(input);
+    }
+
+
 }
 
 impl GameStateManager<Point> {
@@ -70,6 +75,7 @@ impl GameStateManager<Point> {
 
         }
     }
+
 }
 /*impl<T> Default for GameStateManager<T> {
     fn default() -> Self {

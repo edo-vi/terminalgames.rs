@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use game::gamestate::CategoryMap;
 use game::gamestate::object::{ObjectFactory, ObjectCategory, Object};
-use game::board::Coordinates;
 use game::gamestate::object::Point;
 use game::gamestate::object::Active;
 
