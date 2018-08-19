@@ -107,7 +107,7 @@ impl GameStateManager<Point> {
             _options,
             _changes: None
         };
-        // this makes sense because when instantiating a new game state manager the initial state is
+        // this makes sense because when a new game_state_manager is instantiate the initial state is
         // set, and this state is to be considered as a change from the previous null state, when
         // the board is still to be rendered
         new_gsm.lasts_as_changes();
