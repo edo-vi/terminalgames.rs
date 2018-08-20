@@ -1,6 +1,8 @@
 extern crate terminalgames;
 extern crate rand;
 extern crate pancurses;
+extern crate simplelog;
+
 
 use terminalgames::game::Game;
 use terminalgames::game::board::Tile;
@@ -11,7 +13,20 @@ use terminalgames::interface::input::PlayerInput;
 use pancurses::initscr;
 use pancurses::endwin;
 
+use simplelog::*;
+use std::fs::File;
+use simplelog::CombinedLogger;
+
+
 fn main() {
+
+    // set up the logging
+    CombinedLogger::init(
+        vec![
+            WriteLogger::new(LevelFilter::Info, Config::default(), File::create("trmngames.log").unwrap()),
+        ]
+    ).unwrap();
+
     let a: u32 = 32;
     let keys: [char; 5] = ['w','a','s','d','e'];
     let mut game = Game::new();
@@ -37,6 +52,7 @@ fn main() {
         }
 
     }
+
     initscr();
     endwin();
     println!("\n\n{}\n\n",string);

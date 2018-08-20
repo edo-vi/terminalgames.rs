@@ -1,3 +1,7 @@
+//logging dependencies
+#[macro_use] extern crate log;
+extern crate simplelog;
+
 
 extern crate core;
 extern crate uuid;

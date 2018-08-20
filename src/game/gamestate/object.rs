@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub type Point = Coordinates;
 pub type Coords = Vec<Coordinates>;
 
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum ObjectCategory {
     Main,
     Enemy,
@@ -37,12 +37,12 @@ pub trait Active {
     fn position(&self) -> &Self::Position;
 }
 
-
+#[derive(Clone, Debug)]
 pub struct Object<T> {
     _id : Uuid,
     _category: ObjectCategory,
     _position: T,
-    _actions: HashMap<PlayerInput, Box<FnMut(&mut Object<T>) -> ()>>
+    //_actions: HashMap<PlayerInput, Box<FnMut(&mut Object<T>) -> ()>>
 }
 
 impl<T> Active for Object<T> {
@@ -79,7 +79,6 @@ impl ObjectFactory<Point> {
                     _id: Uuid::new_v4(),
                     _category: ObjectCategory::Main,
                     _position: Coordinates(5,5),
-                    _actions: HashMap::new()
                 }
             );
 

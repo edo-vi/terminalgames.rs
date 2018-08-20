@@ -1,3 +1,6 @@
+use super::super::log;
+use super::super::simplelog;
+
 pub mod gamestate;
 pub mod object;
 
@@ -13,6 +16,8 @@ use game::board::Tile;
 use game::board::Coordinates;
 use std::clone::Clone;
 use game::gamestate::object::Active;
+use std::fmt::Debug;
+
 pub type Changes = (Coordinates, Tile);
 
 pub type CategoryMap<T> = HashMap<ObjectCategory, HashMap<Uuid, Object<T>>>;
@@ -48,7 +53,9 @@ impl Default for GameOptions {
 enum StatePhase {
     Start,
     Movement,
-    Action
+    Action,
+    Checks,
+    End
 }
 
 pub struct GameStateManager<T> {
@@ -84,8 +91,10 @@ impl<T> GameStateManager<T> {
         &self._changes
     }
     pub fn game_loop(&mut self, input: PlayerInput) {
+        
         //save input
         self.set_input(input);
+
 
     }
 

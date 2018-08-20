@@ -4,7 +4,7 @@ use game::gamestate::object::{ObjectFactory, ObjectCategory, Object};
 use game::gamestate::object::Point;
 use game::gamestate::object::Active;
 
-
+#[derive(Debug)]
 pub struct GameState<T> {
     _objects: CategoryMap<T>,
     _end: bool,
