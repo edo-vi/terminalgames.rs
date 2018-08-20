@@ -21,14 +21,14 @@ use game::gamestate::GameOptions;
 use std::mem;
 use game::gamestate::Changes;
 
-pub struct Game {
+pub struct Game<T> {
     _board: Arc<RwLock<Board>>,
     _receiver: Option<Receiver<PlayerInput>>,
-    _state_manager: Option<GameStateManager<Point>>,
+    _state_manager: Option<GameStateManager<T>>,
     _game_options: Option<GameOptions>
 }
 
-impl Game {
+impl<T> Game<T> {
     pub fn new() -> Self {
         Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None,
             _state_manager: Option::None, _game_options: Option::None}
@@ -51,21 +51,21 @@ impl Game {
         }
     }
 
-    pub fn state_manager(&self) -> &GameStateManager<Point> {
+    pub fn state_manager(&self) -> &GameStateManager<T> {
         match self._state_manager {
             Some(ref manager) => manager,
             None => panic!("No game state manager to unwrap")
         }
     }
 
-    pub fn mut_state_manager(&mut self) -> &mut GameStateManager<Point> {
+    pub fn state_manager_mut(&mut self) -> &mut GameStateManager<T> {
         match self._state_manager {
             Some(ref mut manager) => manager,
             None => panic!("No game state manager to unwrap")
         }
     }
 
-    pub fn set_state_manager(&mut self, manager: GameStateManager<Point>) {
+    pub fn set_state_manager(&mut self, manager: GameStateManager<T>) {
         match self._state_manager {
             None => self._state_manager = Some(manager),
             Some(ref mut old_manager) => {
@@ -114,30 +114,6 @@ impl Game {
             interface.new_input(&valid_keys);
             interface.render_loop();
         })
-    }
-
-    pub fn begin_game_loop(&mut self) {
-        //Initialize the game state manager
-        let options: GameOptions = self.options().clone();
-        self.set_state_manager(GameStateManager::new(options));
-
-        //game logic loop
-        loop {
-            //get the player input
-            let input_received=self.listen();
-
-            if input_received==PlayerInput::Character('e') {
-                break;
-            }
-
-            //do the update logic loop using the player input
-
-            self.mut_state_manager().game_loop(input_received);
-
-            self.map_state()
-
-        }
-
     }
 
     pub fn listen(&self) -> PlayerInput {
@@ -199,6 +175,32 @@ impl Game {
             //We got the non-poisoned lock, so we return it alongside
             Ok(guard) => guard,
             Err(_) => panic!("The lock over the boar tiles was poisoned!")
+        }
+
+    }
+}
+
+impl Game<Point> {
+    pub fn begin_game_loop(&mut self) {
+        //Initialize the game state manager
+        let options: GameOptions = self.options().clone();
+        self.set_state_manager(GameStateManager::<Point>::new(options));
+
+        //game logic loop
+        loop {
+            //get the player input
+            let input_received=self.listen();
+
+            if input_received==PlayerInput::Character('e') {
+                break;
+            }
+
+            //do the update logic loop using the player input
+
+            self.state_manager_mut().game_loop(input_received);
+
+            self.map_state()
+
         }
 
     }

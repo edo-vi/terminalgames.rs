@@ -34,6 +34,8 @@ pub trait Active {
     fn set_category(&mut self, category: ObjectCategory);
     fn id(&self) -> &Uuid;
     fn set_id(&mut self, id: Uuid);
+    fn receptiveness(&self) -> bool;
+    fn set_receptiveness(&mut self, recept: bool);
     fn position(&self) -> &Self::Position;
 }
 
@@ -41,6 +43,7 @@ pub trait Active {
 pub struct Object<T> {
     _id : Uuid,
     _category: ObjectCategory,
+    _receptive: bool,
     _position: T,
     //_actions: HashMap<PlayerInput, Box<FnMut(&mut Object<T>) -> ()>>
 }
@@ -62,6 +65,12 @@ impl<T> Active for Object<T> {
     fn set_id(&mut self, id: Uuid) {
         self._id=id;
     }
+    fn receptiveness(&self) -> bool {
+        self._receptive
+    }
+    fn set_receptiveness(&mut self, receptiveness: bool) {
+        self._receptive = receptiveness;
+    }
     fn position(&self) -> &Self::Position {&self._position}
 
 }
@@ -78,6 +87,7 @@ impl ObjectFactory<Point> {
             Object {
                     _id: Uuid::new_v4(),
                     _category: ObjectCategory::Main,
+                    _receptive: true,
                     _position: Coordinates(5,5),
                 }
             );

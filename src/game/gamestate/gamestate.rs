@@ -15,11 +15,25 @@ impl<T> GameState<T> {
         Default::default()
     }
     pub fn all_objects(&self) -> Vec<&Object<T>> {
+
         let mut objects=Vec::new();
         //iterate over each hashmap of different categories
         for maps in self._objects.values() {
             for object in maps.values() {
                 objects.push(object);
+            }
+        }
+
+        objects
+    }
+    pub fn all_receptives(&self) -> Vec<&Object<T>> {
+        let mut objects=Vec::new();
+        //iterate over each hashmap of different categories
+        for maps in self._objects.values() {
+            for object in maps.values() {
+                if object.receptiveness()==true {
+                    objects.push(object);
+                }
             }
         }
 

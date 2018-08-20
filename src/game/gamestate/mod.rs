@@ -91,7 +91,7 @@ impl<T> GameStateManager<T> {
         &self._changes
     }
     pub fn game_loop(&mut self, input: PlayerInput) {
-        
+
         //save input
         self.set_input(input);
 

@@ -23,7 +23,8 @@ fn main() {
     // set up the logging
     CombinedLogger::init(
         vec![
-            WriteLogger::new(LevelFilter::Info, Config::default(), File::create("trmngames.log").unwrap()),
+            //WriteLogger::new(LevelFilter::Info, Config::default(), File::create("trmngames.log")).unwrap(),
+            SimpleLogger::new(LevelFilter::Info, Config::default())
         ]
     ).unwrap();
 
