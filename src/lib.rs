@@ -1,4 +1,4 @@
-#![feature(rust_2018_preview)]
+
 extern crate core;
 extern crate uuid;
 

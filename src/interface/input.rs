@@ -3,7 +3,7 @@ use super::pancurses::{Input as PancursesInput, noecho};
 use super::pancurses::Window;
 use super::pancurses::flushinp;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq, Clone, Hash)]
 pub enum PlayerInput {
     Arrow(PancursesInput),
     Character(char),
