@@ -62,9 +62,9 @@ enum StatePhase {
     End
 }
 
-pub trait Manage<T: Update>{
-    fn update_objects(updater: T, objs: Vec<Box<Object>>, input: PlayerInput);
-    fn get_changes(old: Vec<Box<Object>>, new: Vec<Box<Object>>) -> Changes;
+pub trait StateManager<T: Update>{
+    fn update_objects(updater: &T, objs: &Vec<Box<Object>>, input: PlayerInput);
+    fn get_changes(old: &Vec<Box<Object>>, new: &Vec<Box<Object>>) -> Changes;
 }
 
 pub struct GameStateManager {
@@ -106,8 +106,6 @@ impl GameStateManager {
 
 
     }
-
-
 
 }
 

@@ -31,7 +31,7 @@ impl GameState {
         //iterate over each hashmap of different categories
         for maps in self._objects.values() {
             for object in maps.values() {
-                if object.receptiveness()==true {
+                if object.movable()==true {
                     objects.push(object);
                 }
             }

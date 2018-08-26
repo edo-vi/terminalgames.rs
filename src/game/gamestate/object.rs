@@ -30,11 +30,8 @@ impl ObjectCategory {
 pub trait Object {
     fn handle_input(&mut self, input: &PlayerInput);
     fn category(&self) -> &ObjectCategory;
-    fn set_category(&mut self, category: ObjectCategory);
     fn id(&self) -> &Uuid;
-    fn set_id(&mut self, id: Uuid);
-    fn receptiveness(&self) -> bool;
-    fn set_receptiveness(&mut self, recept: bool);
+    fn movable(&self) -> bool;
     fn position(&self) -> &Vec<Coordinates>;
 }
 
@@ -54,20 +51,12 @@ impl Object for Main {
         &self._category
     }
 
-    fn set_category(&mut self, category: ObjectCategory) {
-        self._category = category;
-    }
     fn id(&self) -> &Uuid {
         &self._id
     }
-    fn set_id(&mut self, id: Uuid) {
-        self._id=id;
-    }
-    fn receptiveness(&self) -> bool {
+
+    fn movable(&self) -> bool {
         self._receptive
-    }
-    fn set_receptiveness(&mut self, receptiveness: bool) {
-        self._receptive = receptiveness;
     }
     fn position(&self) -> &Vec<Coordinates> {&self._position}
 
