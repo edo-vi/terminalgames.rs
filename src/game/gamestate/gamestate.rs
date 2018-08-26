@@ -1,20 +1,20 @@
 use std::collections::HashMap;
 use game::gamestate::CategoryMap;
-use game::gamestate::object::{ObjectFactory, ObjectCategory, Object};
+use game::gamestate::object::{ObjectFactory, ObjectCategory, Main};
 use game::gamestate::object::Point;
-use game::gamestate::object::Active;
+use game::gamestate::object::Object;
 
 #[derive(Debug)]
-pub struct GameState<T> {
-    _objects: CategoryMap<T>,
+pub struct GameState {
+    _objects: CategoryMap,
     _end: bool,
 }
 
-impl<T> GameState<T> {
-    pub fn new() -> GameState<T> {
+impl GameState {
+    pub fn new() -> GameState {
         Default::default()
     }
-    pub fn all_objects(&self) -> Vec<&Object<T>> {
+    pub fn all_objects(&self) -> Vec<&Main> {
 
         let mut objects=Vec::new();
         //iterate over each hashmap of different categories
@@ -26,7 +26,7 @@ impl<T> GameState<T> {
 
         objects
     }
-    pub fn all_receptives(&self) -> Vec<&Object<T>> {
+    pub fn all_receptives(&self) -> Vec<&Main> {
         let mut objects=Vec::new();
         //iterate over each hashmap of different categories
         for maps in self._objects.values() {
@@ -41,11 +41,11 @@ impl<T> GameState<T> {
     }
 }
 
-impl GameState<Point> {
-    pub fn with_objects() -> GameState<Point> {
-        let mut first_objects: Vec<Object<Point>> = ObjectFactory::<Point>::firsts();
+impl GameState {
+    pub fn with_objects() -> GameState {
+        let mut first_objects: Vec<Main> = ObjectFactory::firsts();
         //Create the hashmap from the vector
-        let mut hashmap: CategoryMap<Point> = HashMap::new();
+        let mut hashmap: CategoryMap = HashMap::new();
 
         for category in ObjectCategory::categories() {
             let mut new_hash = HashMap::new();
@@ -67,7 +67,7 @@ impl GameState<Point> {
     }
 }
 
-impl<T> Default for GameState<T> {
+impl Default for GameState {
     fn default() -> Self {
         GameState {
             _objects: CategoryMap::new(),

@@ -21,14 +21,14 @@ use game::gamestate::GameOptions;
 use std::mem;
 use game::gamestate::Changes;
 
-pub struct Game<T> {
+pub struct Game {
     _board: Arc<RwLock<Board>>,
     _receiver: Option<Receiver<PlayerInput>>,
-    _state_manager: Option<GameStateManager<T>>,
+    _state_manager: Option<GameStateManager>,
     _game_options: Option<GameOptions>
 }
 
-impl<T> Game<T> {
+impl Game {
     pub fn new() -> Self {
         Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None,
             _state_manager: Option::None, _game_options: Option::None}
@@ -51,21 +51,21 @@ impl<T> Game<T> {
         }
     }
 
-    pub fn state_manager(&self) -> &GameStateManager<T> {
+    pub fn state_manager(&self) -> &GameStateManager {
         match self._state_manager {
             Some(ref manager) => manager,
             None => panic!("No game state manager to unwrap")
         }
     }
 
-    pub fn state_manager_mut(&mut self) -> &mut GameStateManager<T> {
+    pub fn state_manager_mut(&mut self) -> &mut GameStateManager {
         match self._state_manager {
             Some(ref mut manager) => manager,
             None => panic!("No game state manager to unwrap")
         }
     }
 
-    pub fn set_state_manager(&mut self, manager: GameStateManager<T>) {
+    pub fn set_state_manager(&mut self, manager: GameStateManager) {
         match self._state_manager {
             None => self._state_manager = Some(manager),
             Some(ref mut old_manager) => {
@@ -129,7 +129,7 @@ impl<T> Game<T> {
     }
 
     pub fn map_state(&mut self) {
-        let changes: &Option<Vec<Changes>> = self.state_manager().changes();
+        let changes: &Option<Changes> = self.state_manager().changes();
         match changes {
             None => (),
             //If there are some changes, map it to the board
@@ -143,6 +143,7 @@ impl<T> Game<T> {
             }
         }
     }
+
     pub fn change_random_tile(&self) {
         let mut guard = self._get_write_lock();
         let board: &mut Board = guard.deref_mut();
@@ -180,11 +181,11 @@ impl<T> Game<T> {
     }
 }
 
-impl Game<Point> {
+impl Game {
     pub fn begin_game_loop(&mut self) {
         //Initialize the game state manager
         let options: GameOptions = self.options().clone();
-        self.set_state_manager(GameStateManager::<Point>::new(options));
+        self.set_state_manager(GameStateManager::new(options));
 
         //game logic loop
         loop {

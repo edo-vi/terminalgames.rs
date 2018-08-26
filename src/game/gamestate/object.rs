@@ -27,8 +27,7 @@ impl ObjectCategory {
     }
 }
 
-pub trait Active {
-    type Position;
+pub trait Object {
     fn handle_input(&mut self, input: &PlayerInput);
     fn category(&self) -> &ObjectCategory;
     fn set_category(&mut self, category: ObjectCategory);
@@ -36,20 +35,19 @@ pub trait Active {
     fn set_id(&mut self, id: Uuid);
     fn receptiveness(&self) -> bool;
     fn set_receptiveness(&mut self, recept: bool);
-    fn position(&self) -> &Self::Position;
+    fn position(&self) -> &Vec<Coordinates>;
 }
 
 #[derive(Clone, Debug)]
-pub struct Object<T> {
+pub struct Main {
     _id : Uuid,
     _category: ObjectCategory,
     _receptive: bool,
-    _position: T,
+    _position: Vec<Coordinates>,
     //_actions: HashMap<PlayerInput, Box<FnMut(&mut Object<T>) -> ()>>
 }
 
-impl<T> Active for Object<T> {
-    type Position=T;
+impl Object for Main {
     fn handle_input(&mut self, input: &PlayerInput) {}//todo
 
     fn category(&self) -> &ObjectCategory {
@@ -71,24 +69,23 @@ impl<T> Active for Object<T> {
     fn set_receptiveness(&mut self, receptiveness: bool) {
         self._receptive = receptiveness;
     }
-    fn position(&self) -> &Self::Position {&self._position}
+    fn position(&self) -> &Vec<Coordinates> {&self._position}
 
 }
 
-pub struct ObjectFactory<T> {
-    _type: T
+pub struct ObjectFactory {
 }
 
-impl ObjectFactory<Point> {
+impl ObjectFactory {
     ///Creates the first objects to be placed on the board
-    pub fn firsts() -> Vec<Object<Coordinates>> {
+    pub fn firsts() -> Vec<Main> {
         let mut vec = Vec::new();
         vec.push(
-            Object {
+            Main {
                     _id: Uuid::new_v4(),
                     _category: ObjectCategory::Main,
                     _receptive: true,
-                    _position: Coordinates(5,5),
+                    _position: vec!(Coordinates(5,5)),
                 }
             );
 
