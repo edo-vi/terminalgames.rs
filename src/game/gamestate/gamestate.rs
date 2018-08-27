@@ -1,8 +1,26 @@
 use std::collections::HashMap;
-use game::gamestate::CategoryMap;
+
 use game::gamestate::object::{ObjectFactory, ObjectCategory, Main};
 use game::gamestate::object::Point;
 use game::gamestate::object::Object;
+use uuid::Uuid;
+
+pub type CategoryMap = HashMap<ObjectCategory, HashMap<Uuid, Main>>;
+
+pub trait CategoryMapNew {
+    fn new() -> Self;
+}
+
+impl CategoryMapNew for CategoryMap {
+    fn new() -> Self {
+        let mut newhash: CategoryMap =HashMap::new();
+        for cat in ObjectCategory::categories() {
+            newhash.insert(cat,HashMap::new());
+        }
+
+        newhash
+    }
+}
 
 #[derive(Debug)]
 pub struct GameState {
@@ -14,6 +32,31 @@ impl GameState {
     pub fn new() -> GameState {
         Default::default()
     }
+
+    pub fn with_objects() -> GameState {
+        let mut first_objects: Vec<Main> = ObjectFactory::firsts();
+        //Create the hashmap from the vector
+        let mut hashmap: CategoryMap = HashMap::new();
+
+        for category in ObjectCategory::categories() {
+            let mut new_hash = HashMap::new();
+
+            let mut i=0;
+
+            while i<first_objects.len() {
+                if *first_objects[i].category()==category {
+                    let object = first_objects.remove(i);
+                    new_hash.insert(*object.id(), object);
+                } else { i+=1; }
+            }
+            hashmap.insert(category,new_hash);
+        }
+        GameState {
+            _objects: hashmap,
+            _end: false
+        }
+    }
+
     pub fn all_objects(&self) -> Vec<&Main> {
 
         let mut objects=Vec::new();
@@ -38,32 +81,6 @@ impl GameState {
         }
 
         objects
-    }
-}
-
-impl GameState {
-    pub fn with_objects() -> GameState {
-        let mut first_objects: Vec<Main> = ObjectFactory::firsts();
-        //Create the hashmap from the vector
-        let mut hashmap: CategoryMap = HashMap::new();
-
-        for category in ObjectCategory::categories() {
-            let mut new_hash = HashMap::new();
-
-            let mut i=0;
-
-            while i<first_objects.len() {
-                if *first_objects[i].category()==category {
-                    let object = first_objects.remove(i);
-                    new_hash.insert(*object.id(), object);
-                } else { i+=1; }
-            }
-            hashmap.insert(category,new_hash);
-        }
-        GameState {
-            _objects: hashmap,
-            _end: false
-        }
     }
 }
 

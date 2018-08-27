@@ -24,22 +24,7 @@ use game::gamestate::checker::Check;
 
 pub type Changes = Vec<(Coordinates, Tile)>;
 
-pub type CategoryMap = HashMap<ObjectCategory, HashMap<Uuid, Main>>;
 
-pub trait CategoryMapNew {
-    fn new() -> Self;
-}
-
-impl CategoryMapNew for CategoryMap {
-    fn new() -> Self {
-        let mut newhash: CategoryMap =HashMap::new();
-        for cat in ObjectCategory::categories() {
-            newhash.insert(cat,HashMap::new());
-        }
-
-        newhash
-    }
-}
 
 #[derive(Clone)]
 pub struct GameOptions {
