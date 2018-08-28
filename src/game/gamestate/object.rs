@@ -62,12 +62,15 @@ impl Object for Main {
 
 }
 
-pub struct ObjectFactory {
+pub trait ObjectFactory<T: Object> {
+    fn firsts() -> Vec<T>;
 }
 
-impl ObjectFactory {
+pub struct MainFactory {}
+
+impl ObjectFactory<Main> for MainFactory {
     ///Creates the first objects to be placed on the board
-    pub fn firsts() -> Vec<Main> {
+    fn firsts() -> Vec<Main> {
         let mut vec = Vec::new();
         vec.push(
             Main {

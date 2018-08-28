@@ -26,15 +26,31 @@ pub type Changes = Vec<(Coordinates, Tile)>;
 
 
 
-#[derive(Clone)]
-pub struct GameOptions {
-    pub dimensions: Dimensions
+
+pub trait GameOptions: Clone {
+    fn new(board_dimension: Dimensions) -> Self;
+    fn dimensions(&self) -> &Dimensions;
 }
 
-impl Default for GameOptions {
+#[derive(Clone)]
+pub struct PacManOptions {
+    _dimensions: Dimensions
+}
+
+impl GameOptions for PacManOptions {
+    fn new(board_dimension: Dimensions) -> Self {
+        PacManOptions {
+            _dimensions: board_dimension
+        }
+    }
+    fn dimensions(&self) -> &Dimensions {
+        &self._dimensions
+    }
+}
+impl Default for PacManOptions {
     fn default() -> Self {
-        GameOptions {
-            dimensions: Dimensions(0,0)
+        PacManOptions {
+            _dimensions: Dimensions(0,0)
         }
     }
 }
@@ -46,11 +62,14 @@ pub enum StatePhase {
     Checks,
     End
 }
-
-pub trait StateManager<T: Update>{
-    fn update_objects(updater: &T, objs: &Vec<Box<Object>>,
-                      input: PlayerInput, phase: StatePhase) ->Vec<Box<Object>>;
-    fn get_changes(old: &Vec<Box<Object>>, new: &Vec<Box<Object>>) -> Changes;
+/* (updater: &T, objs: &Vec<Box<Object>>,
+                    input: PlayerInput, phase: StatePhase) -> Vec<Box<Object> */
+/// Game state manager: initializes the game state and updates it accordingly to the player input,
+/// sets up the updater and checker objects, returns the state changes at each cycle.
+pub trait StateManager<O: GameOptions>{
+    ///Creates a new instance of the State Manager, with the necessary options to manage the game state.
+    fn new(options: O) -> Self;
+    fn update_state(&mut self, input: PlayerInput) -> Option<Changes>;
 }
 
 pub struct GameStateManager {
@@ -58,11 +77,48 @@ pub struct GameStateManager {
     _current: GameState,
     _history: Vec<GameState>,
     _input: PlayerInput,
-    _options: GameOptions,
+    _options: PacManOptions,
     _changes: Option<Changes>
 }
 
+impl StateManager<PacManOptions> for GameStateManager {
+    fn new(_options: PacManOptions) -> Self {
+        let current = GameState::with_objects();
+        let mut history = Vec::new();
+        history.push(current);
+
+        let mut new_gsm= GameStateManager {
+            _phase: StatePhase::Start,
+            _current: GameState::new(),
+            _history : history,
+            _input: PlayerInput::None,
+            _options,
+            _changes: None
+        };
+        // this makes sense because when a new game_state_manager is instantiate the initial state is
+        // set, and this state is to be considered as a change from the previous null state, when
+        // the board is still to be rendered
+        new_gsm.lasts_as_changes();
+        new_gsm
+    }
+
+    fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
+        Option::None
+    }
+
+}
 impl GameStateManager {
+
+    pub fn lasts_as_changes(&mut self) {
+        let mut changes: Changes = Vec::new();
+        for obj in self.last_state().all_objects() {
+            for pos in obj.position() {
+                changes.push((pos.clone(),Tile::Active(None)));
+            }
+
+        }
+        self._changes=Some(changes);
+    }
 
     fn input(&self) -> &PlayerInput {
         &self._input
@@ -91,40 +147,6 @@ impl GameStateManager {
         self.set_input(input);
 
 
-    }
-
-}
-
-impl GameStateManager {
-    pub fn new(_options: GameOptions) -> Self {
-        let current = GameState::with_objects();
-        let mut history = Vec::new();
-        history.push(current);
-
-        let mut new_gsm= GameStateManager {
-            _phase: StatePhase::Start,
-            _current: GameState::new(),
-            _history : history,
-            _input: PlayerInput::None,
-            _options,
-            _changes: None
-        };
-        // this makes sense because when a new game_state_manager is instantiate the initial state is
-        // set, and this state is to be considered as a change from the previous null state, when
-        // the board is still to be rendered
-        new_gsm.lasts_as_changes();
-        new_gsm
-    }
-    //this requires a concrete type (Point or Coords)
-    pub fn lasts_as_changes(&mut self) {
-        let mut changes: Changes = Vec::new();
-        for obj in self.last_state().all_objects() {
-            for pos in obj.position() {
-                changes.push((pos.clone(),Tile::Active(None)));
-            }
-
-        }
-        self._changes=Some(changes);
     }
 
 }

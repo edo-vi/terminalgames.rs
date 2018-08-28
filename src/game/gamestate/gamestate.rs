@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use game::gamestate::object::{ObjectFactory, ObjectCategory, Main};
+use game::gamestate::object::{ObjectFactory, ObjectCategory, Main, MainFactory};
 use game::gamestate::object::Point;
 use game::gamestate::object::Object;
 use uuid::Uuid;
@@ -34,7 +34,7 @@ impl GameState {
     }
 
     pub fn with_objects() -> GameState {
-        let mut first_objects: Vec<Main> = ObjectFactory::firsts();
+        let mut first_objects: Vec<Main> = MainFactory::firsts();
         //Create the hashmap from the vector
         let mut hashmap: CategoryMap = HashMap::new();
 

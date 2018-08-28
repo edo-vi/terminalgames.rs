@@ -20,15 +20,16 @@ use game::gamestate::object::Point;
 use game::gamestate::GameOptions;
 use std::mem;
 use game::gamestate::Changes;
+use game::gamestate::StateManager;
 
-pub struct Game {
+pub struct Game<S: StateManager<O>, O: GameOptions> {
     _board: Arc<RwLock<Board>>,
     _receiver: Option<Receiver<PlayerInput>>,
-    _state_manager: Option<GameStateManager>,
-    _game_options: Option<GameOptions>
+    _state_manager: Option<S>,
+    _game_options: Option<O>
 }
 
-impl Game {
+impl<S: StateManager<O>, O: GameOptions> Game<S, O> {
     pub fn new() -> Self {
         Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None,
             _state_manager: Option::None, _game_options: Option::None}
@@ -43,7 +44,7 @@ impl Game {
         match Board::with_tiles(tiles, dimensions) {
             Ok(b) => {
                 self._board=Arc::new(RwLock::new(b));
-                self._game_options = Some(GameOptions { dimensions: dim });
+                self._game_options = Some(O::new( dim ));
             },
             Err(e) => match e {
                 BoardError::WrongLen(mes) => panic!("Couldn't set the board for the game: {}", mes)
@@ -51,21 +52,21 @@ impl Game {
         }
     }
 
-    pub fn state_manager(&self) -> &GameStateManager {
+    pub fn state_manager(&self) -> &S {
         match self._state_manager {
             Some(ref manager) => manager,
             None => panic!("No game state manager to unwrap")
         }
     }
 
-    pub fn state_manager_mut(&mut self) -> &mut GameStateManager {
+    pub fn state_manager_mut(&mut self) -> &mut S {
         match self._state_manager {
             Some(ref mut manager) => manager,
             None => panic!("No game state manager to unwrap")
         }
     }
 
-    pub fn set_state_manager(&mut self, manager: GameStateManager) {
+    pub fn set_state_manager(&mut self, manager: S) {
         match self._state_manager {
             None => self._state_manager = Some(manager),
             Some(ref mut old_manager) => {
@@ -74,14 +75,14 @@ impl Game {
         }
     }
 
-    pub fn options(&self) -> &GameOptions {
+    pub fn options(&self) -> &O {
         match self._game_options {
             Some(ref options) => options,
             None => panic!("No game options to unwrap!")
         }
     }
 
-    pub fn set_options(&mut self, options: GameOptions) {
+    pub fn set_options(&mut self, options: O) {
         match self._game_options {
             None => self._game_options=Some(options),
             Some(ref mut old_options) => {
@@ -116,6 +117,29 @@ impl Game {
         })
     }
 
+    pub fn begin_game_loop(&mut self) {
+        //Initialize the game state manager
+        let options: O = self.options().clone();
+        self.set_state_manager(S::new(options));
+
+        //game logic loop
+        loop {
+            //get the player input
+            let input_received=self.listen();
+
+            if input_received==PlayerInput::Character('e') {
+                break;
+            }
+
+            //do the update logic loop using the player input
+
+
+            self.state_manager_mut().update_state(input_received);
+
+        }
+
+    }
+
     pub fn listen(&self) -> PlayerInput {
         match self._receiver {
             Some(ref receiver) => {
@@ -128,8 +152,7 @@ impl Game {
         };
     }
 
-    pub fn map_state(&mut self) {
-        let changes: &Option<Changes> = self.state_manager().changes();
+    pub fn map_state(&mut self, changes: Option<Changes>) {
         match changes {
             None => (),
             //If there are some changes, map it to the board
@@ -176,32 +199,6 @@ impl Game {
             //We got the non-poisoned lock, so we return it alongside
             Ok(guard) => guard,
             Err(_) => panic!("The lock over the boar tiles was poisoned!")
-        }
-
-    }
-}
-
-impl Game {
-    pub fn begin_game_loop(&mut self) {
-        //Initialize the game state manager
-        let options: GameOptions = self.options().clone();
-        self.set_state_manager(GameStateManager::new(options));
-
-        //game logic loop
-        loop {
-            //get the player input
-            let input_received=self.listen();
-
-            if input_received==PlayerInput::Character('e') {
-                break;
-            }
-
-            //do the update logic loop using the player input
-
-            self.state_manager_mut().game_loop(input_received);
-
-            self.map_state()
-
         }
 
     }
