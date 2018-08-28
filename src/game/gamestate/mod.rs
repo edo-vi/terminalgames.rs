@@ -109,7 +109,7 @@ impl<U: Update ,C: Check> StateManager<PacManOptions, U, C> for PacManStateManag
     }
 
 }
-impl PacManStateManager<PacManUpdater, PacManChecker> {
+impl<U: Update, C: Check> PacManStateManager<U, C> {
 
     pub fn lasts_as_changes(&mut self) -> Changes {
         let mut changes: Changes = Vec::new();

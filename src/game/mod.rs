@@ -38,8 +38,12 @@ impl<S, O, U, C> Game<S, O, U, C>
 where S:StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
 {
     pub fn new() -> Self {
-        Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None,
-            _state_manager: Option::None, _game_options: Option::None}
+        Game {_board: Arc::new(RwLock::new(Default::default())),
+            _receiver: Option::None,
+            _state_manager: Option::None,
+            _game_options: Option::None,
+            phantom_1: PhantomData,
+            phantom_2: PhantomData}
     }
 
     fn board(&self) -> &RwLock<Board> {
