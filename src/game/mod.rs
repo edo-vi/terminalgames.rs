@@ -15,21 +15,28 @@ use self::rand::Rng;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread::JoinHandle;
 use interface::input::PlayerInput;
-use game::gamestate::GameStateManager;
+use game::gamestate::PacManStateManager;
 use game::gamestate::object::Point;
 use game::gamestate::GameOptions;
 use std::mem;
 use game::gamestate::Changes;
 use game::gamestate::StateManager;
+use game::gamestate::updater::Update;
+use game::gamestate::checker::Check;
+use std::marker::PhantomData;
 
-pub struct Game<S: StateManager<O>, O: GameOptions> {
+pub struct Game<S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check> {
     _board: Arc<RwLock<Board>>,
     _receiver: Option<Receiver<PlayerInput>>,
-    _state_manager: Option<S>,
-    _game_options: Option<O>
+    _state_manager: Option<S> ,
+    _game_options: Option<O>,
+    phantom_1: PhantomData<U>,
+    phantom_2: PhantomData<C>
 }
 
-impl<S: StateManager<O>, O: GameOptions> Game<S, O> {
+impl<S, O, U, C> Game<S, O, U, C>
+where S:StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
+{
     pub fn new() -> Self {
         Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None,
             _state_manager: Option::None, _game_options: Option::None}
@@ -117,10 +124,10 @@ impl<S: StateManager<O>, O: GameOptions> Game<S, O> {
         })
     }
 
-    pub fn begin_game_loop(&mut self) {
+    pub fn begin_game_loop(&mut self, updater: U, checker: C) {
         //Initialize the game state manager
         let options: O = self.options().clone();
-        self.set_state_manager(S::new(options));
+        self.set_state_manager(S::new(options, updater, checker));
 
         //game logic loop
         loop {
@@ -133,9 +140,11 @@ impl<S: StateManager<O>, O: GameOptions> Game<S, O> {
 
             //do the update logic loop using the player input
 
-
-            self.state_manager_mut().update_state(input_received);
-
+            let changes: Option<Changes>;
+            {
+                changes=self.state_manager_mut().update_state(input_received);
+            }
+            self.map_state(changes);
         }
 
     }
