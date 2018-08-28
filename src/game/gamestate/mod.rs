@@ -39,7 +39,7 @@ impl Default for GameOptions {
     }
 }
 
-enum StatePhase {
+pub enum StatePhase {
     Start,
     Movement,
     Action,
@@ -48,7 +48,8 @@ enum StatePhase {
 }
 
 pub trait StateManager<T: Update>{
-    fn update_objects(updater: &T, objs: &Vec<Box<Object>>, input: PlayerInput);
+    fn update_objects(updater: &T, objs: &Vec<Box<Object>>,
+                      input: PlayerInput, phase: StatePhase) ->Vec<Box<Object>>;
     fn get_changes(old: &Vec<Box<Object>>, new: &Vec<Box<Object>>) -> Changes;
 }
 
