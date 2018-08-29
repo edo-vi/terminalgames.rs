@@ -33,7 +33,7 @@ fn main() {
 
     let a: u32 = 32;
     let keys: [char; 5] = ['w','a','s','d','e'];
-    let mut game: Game<PacManStateManager<PacManUpdater, PacManChecker>, PacManOptions,
+    let mut game: Game<PacManStateManager<PacManOptions, PacManUpdater, PacManChecker>, PacManOptions,
         PacManUpdater, PacManChecker> = Game::new();
     game.new_board(vec![Tile::Empty(None); 30*22], Dimensions(30, 22));
     game.add_border();

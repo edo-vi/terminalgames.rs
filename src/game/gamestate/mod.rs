@@ -77,19 +77,19 @@ pub trait StateManager<O: GameOptions, U: Update, C: Check>{
     fn update_state(&mut self, input: PlayerInput) -> Option<Changes>;
 }
 
-pub struct PacManStateManager<U: Update, C: Check> {
+pub struct PacManStateManager<O: GameOptions, U: Update, C: Check> {
     _phase: StatePhase,
     _current: Option<GameState>,
     _history: Vec<GameState>,
     _input: PlayerInput,
-    _options: PacManOptions,
+    _options: O,
     _changes: Option<Changes>,
     _updater: U,
     _checker: C
 }
 
-impl<U: Update ,C: Check> StateManager<PacManOptions, U, C> for PacManStateManager<U,C> {
-    fn new(_options: PacManOptions, _updater: U, _checker: C) -> Self {
+impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateManager<O, U, C> {
+    fn new(_options: O, _updater: U, _checker: C) -> Self {
         let current = GameState::with_objects();
         let mut history = Vec::new();
         history.push(current);
@@ -111,12 +111,23 @@ impl<U: Update ,C: Check> StateManager<PacManOptions, U, C> for PacManStateManag
         new_gsm
     }
 
+    fn set_options(&mut self, options: O) {
+        self._options=options;
+    }
+    fn set_updater(&mut self, updater: U) {
+        self._updater = updater;
+    }
+    fn set_checker(&mut self, checker: C) {
+        self._checker = checker;
+    }
+
     fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
         Some(self.lasts_as_changes())
     }
 
 }
-impl<U: Update, C: Check> PacManStateManager<U, C> {
+
+impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
 
     pub fn lasts_as_changes(&mut self) -> Changes {
         let mut changes: Changes = Vec::new();

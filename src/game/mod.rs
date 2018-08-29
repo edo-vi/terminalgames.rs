@@ -57,7 +57,7 @@ where S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
         match Board::with_tiles(tiles, dimensions) {
             Ok(b) => {
                 self._board=Arc::new(RwLock::new(b));
-                self.set_options(O::new(dim));
+                self.state_manager_mut().set_options(O::new(dim));
             },
             Err(e) => match e {
                 BoardError::WrongLen(mes) => panic!("Couldn't set the board for the game: {}", mes)
@@ -77,16 +77,6 @@ where S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
         mem::replace(self.state_manager_mut(),manager);
     }
 
-    pub fn options(&self) -> &O {
-        &self._game_options
-    }
-
-    pub fn options_mut(&mut self) -> &mut O {
-        &mut self._game_options
-    }
-    pub fn set_options(&mut self, options: O) {
-        mem::replace(self.options_mut(), options);
-    }
     pub fn add_border(&mut self) {
         let mut guard: RwLockWriteGuard<Board> = self._get_write_lock();
         guard.deref_mut().set_border();
@@ -115,10 +105,6 @@ where S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
     }
 
     pub fn begin_game_loop(&mut self, updater: U, checker: C) {
-        //Initialize the game state manager
-        let options: O = self.options().clone();
-        self.set_state_manager(S::new(options, updater, checker));
-
         //game logic loop
         loop {
             //get the player input
