@@ -1,12 +1,14 @@
 use game::gamestate::object::Object;
 
-pub trait Check{
+pub trait Check: Default{
     fn new() -> Self;
     fn check_collisions(objs: Vec<Box<Object>>) -> Vec<Box<Object>>;
     fn objects() -> Vec<Box<Object>>;
 }
 
+#[derive(Default)]
 pub struct PacManChecker {}
+
 
 impl Check for PacManChecker {
     fn new() -> Self {

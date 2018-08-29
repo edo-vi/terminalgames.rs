@@ -28,22 +28,24 @@ use std::marker::PhantomData;
 pub struct Game<S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check> {
     _board: Arc<RwLock<Board>>,
     _receiver: Option<Receiver<PlayerInput>>,
-    _state_manager: Option<S> ,
-    _game_options: Option<O>,
-    phantom_1: PhantomData<U>,
-    phantom_2: PhantomData<C>
+    _state_manager: S,
+    _phantom1: PhantomData<U>,
+    _phantom2: PhantomData<C>,
+    _phantom3: PhantomData<O>
 }
 
 impl<S, O, U, C> Game<S, O, U, C>
-where S:StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
+where S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
 {
-    pub fn new() -> Self {
-        Game {_board: Arc::new(RwLock::new(Default::default())),
+    pub fn new(_board: Board, _state_manager: S) -> Self {
+        Game {
+            _board: Arc::new(RwLock::new(_board)),
             _receiver: Option::None,
-            _state_manager: Option::None,
-            _game_options: Option::None,
-            phantom_1: PhantomData,
-            phantom_2: PhantomData}
+            _state_manager,
+            _phantom1: PhantomData,
+            _phantom2: PhantomData,
+            _phantom3: PhantomData
+        }
     }
 
     fn board(&self) -> &RwLock<Board> {
@@ -55,7 +57,7 @@ where S:StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
         match Board::with_tiles(tiles, dimensions) {
             Ok(b) => {
                 self._board=Arc::new(RwLock::new(b));
-                self._game_options = Some(O::new( dim ));
+                self.set_options(O::new(dim));
             },
             Err(e) => match e {
                 BoardError::WrongLen(mes) => panic!("Couldn't set the board for the game: {}", mes)
@@ -64,42 +66,26 @@ where S:StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
     }
 
     pub fn state_manager(&self) -> &S {
-        match self._state_manager {
-            Some(ref manager) => manager,
-            None => panic!("No game state manager to unwrap")
-        }
+        &self._state_manager
     }
 
     pub fn state_manager_mut(&mut self) -> &mut S {
-        match self._state_manager {
-            Some(ref mut manager) => manager,
-            None => panic!("No game state manager to unwrap")
-        }
+        &mut self._state_manager
     }
 
     pub fn set_state_manager(&mut self, manager: S) {
-        match self._state_manager {
-            None => self._state_manager = Some(manager),
-            Some(ref mut old_manager) => {
-                mem::replace(old_manager,manager);
-            }
-        }
+        mem::replace(self.state_manager_mut(),manager);
     }
 
     pub fn options(&self) -> &O {
-        match self._game_options {
-            Some(ref options) => options,
-            None => panic!("No game options to unwrap!")
-        }
+        &self._game_options
     }
 
+    pub fn options_mut(&mut self) -> &mut O {
+        &mut self._game_options
+    }
     pub fn set_options(&mut self, options: O) {
-        match self._game_options {
-            None => self._game_options=Some(options),
-            Some(ref mut old_options) => {
-                mem::replace(old_options, options);
-            }
-        }
+        mem::replace(self.options_mut(), options);
     }
     pub fn add_border(&mut self) {
         let mut guard: RwLockWriteGuard<Board> = self._get_write_lock();
@@ -174,7 +160,7 @@ where S:StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
                 let board= guard.deref_mut();
                 for ch in changes {
                     let index: usize = board.as_point(&ch.0) as usize;
-                    board.set_tile(index, ch.1.clone());
+                    board.set_tile(index, ch.1);
                 }
             }
         }
@@ -216,3 +202,4 @@ where S:StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
 
     }
 }
+

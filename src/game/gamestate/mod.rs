@@ -26,10 +26,10 @@ use game::gamestate::checker::PacManChecker;
 
 pub type Changes = Vec<(Coordinates, Tile)>;
 
-
-pub trait GameOptions: Clone {
+pub trait GameOptions: Clone + Default {
     fn new(board_dimension: Dimensions) -> Self;
     fn dimensions(&self) -> &Dimensions;
+    fn set_dimensions(&mut self, dim: Dimensions);
 }
 
 #[derive(Clone)]
@@ -46,7 +46,11 @@ impl GameOptions for PacManOptions {
     fn dimensions(&self) -> &Dimensions {
         &self._dimensions
     }
+    fn set_dimensions(&mut self, dim: Dimensions) {
+        self._dimensions = dim;
+    }
 }
+
 impl Default for PacManOptions {
     fn default() -> Self {
         PacManOptions {
@@ -67,6 +71,9 @@ pub enum StatePhase {
 pub trait StateManager<O: GameOptions, U: Update, C: Check>{
     ///Creates a new instance of the State Manager, with the necessary options to manage the game state.
     fn new(options: O, updater: U, checker: C) -> Self;
+    fn set_options(&mut self, options: O);
+    fn set_updater(&mut self, updater: U);
+    fn set_checker(&mut self, checker: C);
     fn update_state(&mut self, input: PlayerInput) -> Option<Changes>;
 }
 

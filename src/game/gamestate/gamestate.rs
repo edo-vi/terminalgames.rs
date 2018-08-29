@@ -69,7 +69,7 @@ impl GameState {
 
         objects
     }
-    pub fn all_receptives(&self) -> Vec<&Main> {
+    pub fn all_movable(&self) -> Vec<&Main> {
         let mut objects=Vec::new();
         //iterate over each hashmap of different categories
         for maps in self._objects.values() {
