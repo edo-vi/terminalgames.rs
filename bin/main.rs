@@ -16,10 +16,15 @@ use pancurses::endwin;
 use simplelog::*;
 use std::fs::File;
 use simplelog::CombinedLogger;
-use terminalgames::game::gamestate::PacManStateManager;
+use terminalgames::game::gamestate::StateManager;
+use terminalgames::game::gamestate::updater::Update;
+use terminalgames::game::gamestate::checker::Check;
+use terminalgames::game::gamestate::GameOptions;
 use terminalgames::game::gamestate::PacManOptions;
 use terminalgames::game::gamestate::updater::{PacManUpdater};
 use terminalgames::game::gamestate::checker::{PacManChecker};
+use terminalgames::game::board::Board;
+use terminalgames::game::gamestate::PacManStateManager;
 
 fn main() {
 
@@ -33,9 +38,10 @@ fn main() {
 
     let a: u32 = 32;
     let keys: [char; 5] = ['w','a','s','d','e'];
-    let mut game: Game<PacManStateManager<PacManOptions, PacManUpdater, PacManChecker>, PacManOptions,
-        PacManUpdater, PacManChecker> = Game::new();
-    game.new_board(vec![Tile::Empty(None); 30*22], Dimensions(30, 22));
+    let dim = Dimensions(32,22);
+    let board = Board::new(dim.clone());
+    let statemanager = PacManStateManager::new(PacManOptions::new(dim), PacManUpdater::default(), PacManChecker::default());
+    let mut game = Game::new(board, statemanager);
     game.add_border();
 
     game.begin_rendering(a, keys.clone());

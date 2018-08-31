@@ -104,7 +104,7 @@ where S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
         })
     }
 
-    pub fn begin_game_loop(&mut self, updater: U, checker: C) {
+    pub fn begin_game_loop(&mut self) {
         //game logic loop
         loop {
             //get the player input

@@ -1,5 +1,6 @@
 use super::super::log;
 use super::super::simplelog;
+use game::gamestate::object::ObjectFactory;
 
 pub mod gamestate;
 pub mod object;
@@ -23,6 +24,7 @@ use game::gamestate::updater::Update;
 use game::gamestate::checker::Check;
 use game::gamestate::updater::PacManUpdater;
 use game::gamestate::checker::PacManChecker;
+use game::gamestate::object::MainFactory;
 
 pub type Changes = Vec<(Coordinates, Tile)>;
 
@@ -58,12 +60,10 @@ impl Default for PacManOptions {
         }
     }
 }
-
+#[derive(PartialEq, Eq)]
 pub enum StatePhase {
     Start,
-    Movement,
-    Action,
-    Checks,
+    Normal,
     End
 }
 /// Game state manager: initializes the game state and updates it accordingly to the player input,
@@ -79,40 +79,31 @@ pub trait StateManager<O: GameOptions, U: Update, C: Check>{
 
 pub struct PacManStateManager<O: GameOptions, U: Update, C: Check> {
     _phase: StatePhase,
-    _current: Option<GameState>,
-    _history: Vec<GameState>,
-    _input: PlayerInput,
+    _current: Vec<Box<Object>>,
     _options: O,
-    _changes: Option<Changes>,
     _updater: U,
     _checker: C
 }
 
 impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateManager<O, U, C> {
     fn new(_options: O, _updater: U, _checker: C) -> Self {
-        let current = GameState::with_objects();
-        let mut history = Vec::new();
-        history.push(current);
+        let _current = MainFactory::firsts();
 
         let mut new_gsm= PacManStateManager {
             _phase: StatePhase::Start,
-            _current: None,
-            _history : history,
-            _input: PlayerInput::None,
+            _current,
             _options,
-            _changes: None,
             _updater,
             _checker
         };
         // this makes sense because when a new game_state_manager is instantiate the initial state is
         // set, and this state is to be considered as a change from the previous null state, when
         // the board is still to be rendered
-        new_gsm.lasts_as_changes();
         new_gsm
     }
 
     fn set_options(&mut self, options: O) {
-        self._options=options;
+        self._options = options;
     }
     fn set_updater(&mut self, updater: U) {
         self._updater = updater;
@@ -122,14 +113,25 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
     }
 
     fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
-        Some(self.lasts_as_changes())
+        if self._phase == StatePhase::Start {
+            self._phase == StatePhase::Normal;
+            Some(self.last_state_as_changes())
+        } else {
+            let mut old_objects = Vec::new();
+            for bx in self._current {
+                old_objects.push(bx.clone())
+            }
+            let new_objects = self._updater.update_objects(old_objects, input);
+        }
     }
+
+
 
 }
 
 impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
 
-    pub fn lasts_as_changes(&mut self) -> Changes {
+    /* pub fn last_state_as_changes(&mut self) -> Changes {
         let mut changes: Changes = Vec::new();
         for obj in self.last_state().all_objects() {
             for pos in obj.position() {
@@ -138,36 +140,8 @@ impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
 
         }
         changes
-    }
+    } */
 
-    fn input(&self) -> &PlayerInput {
-        &self._input
-    }
-
-    pub fn set_input(&mut self, input: PlayerInput) {
-        self._input = input;
-    }
-
-    fn save_state(&mut self, state: GameState) {
-        self._history.push(state);
-    }
-
-    fn last_state(&self) -> &GameState {
-        match self._history.last() {
-            Some(ref state) => state,
-            None => panic!("History is empty, no last state to extract!")
-        }
-    }
-    pub fn changes(&self) -> &Option<Changes> {
-        &self._changes
-    }
-    pub fn game_loop(&mut self, input: PlayerInput) {
-
-        //save input
-        self.set_input(input);
-
-
-    }
 
 }
 

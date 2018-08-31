@@ -35,7 +35,7 @@ pub trait Object {
     fn position(&self) -> &Vec<Coordinates>;
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Main {
     _id : Uuid,
     _category: ObjectCategory,
@@ -62,25 +62,25 @@ impl Object for Main {
 
 }
 
-pub trait ObjectFactory<T: Object> {
-    fn firsts() -> Vec<T>;
+pub trait ObjectFactory {
+    fn firsts() -> Vec<Box<Object>>;
 }
 
 pub struct MainFactory {}
 
-impl ObjectFactory<Main> for MainFactory {
+impl ObjectFactory for MainFactory {
     ///Creates the first objects to be placed on the board
-    fn firsts() -> Vec<Main> {
+    fn firsts() -> Vec<Box<Object>> {
         let mut vec = Vec::new();
         vec.push(
-            Main {
-                    _id: Uuid::new_v4(),
-                    _category: ObjectCategory::Main,
-                    _receptive: true,
-                    _position: vec!(Coordinates(5,5)),
-                }
-            );
-
+            Box::from(
+                (Main {
+                        _id: Uuid::new_v4(),
+                        _category: ObjectCategory::Main,
+                        _receptive: true,
+                        _position: vec!(Coordinates(5,5)),
+                    }) as Object
+                )) ;
         vec
     }
 }

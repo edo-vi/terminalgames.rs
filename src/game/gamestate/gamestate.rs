@@ -5,15 +5,15 @@ use game::gamestate::object::Point;
 use game::gamestate::object::Object;
 use uuid::Uuid;
 
-pub type CategoryMap = HashMap<ObjectCategory, HashMap<Uuid, Main>>;
+pub type CategoryMap<U> = HashMap<ObjectCategory, HashMap<Uuid, U>>;
 
 pub trait CategoryMapNew {
     fn new() -> Self;
 }
 
-impl CategoryMapNew for CategoryMap {
+impl<U> CategoryMapNew for CategoryMap<U> {
     fn new() -> Self {
-        let mut newhash: CategoryMap =HashMap::new();
+        let mut newhash: CategoryMap<U> =HashMap::new();
         for cat in ObjectCategory::categories() {
             newhash.insert(cat,HashMap::new());
         }
@@ -23,20 +23,20 @@ impl CategoryMapNew for CategoryMap {
 }
 
 #[derive(Debug)]
-pub struct GameState {
-    _objects: CategoryMap,
+pub struct GameState<U> {
+    _objects: CategoryMap<U>,
     _end: bool,
 }
 
-impl GameState {
-    pub fn new() -> GameState {
+impl<U> GameState<U> {
+    pub fn new() -> GameState<U> {
         Default::default()
     }
 
-    pub fn with_objects() -> GameState {
-        let mut first_objects: Vec<Main> = MainFactory::firsts();
+    pub fn with_objects() -> GameState<U> {
+        let mut first_objects: Vec<Box<Object>> = MainFactory::firsts();
         //Create the hashmap from the vector
-        let mut hashmap: CategoryMap = HashMap::new();
+        let mut hashmap: CategoryMap<U> = HashMap::new();
 
         for category in ObjectCategory::categories() {
             let mut new_hash = HashMap::new();
@@ -84,7 +84,7 @@ impl GameState {
     }
 }
 
-impl Default for GameState {
+impl<U> Default for GameState<U> {
     fn default() -> Self {
         GameState {
             _objects: CategoryMap::new(),
