@@ -1,5 +1,4 @@
-use super::super::log;
-use super::super::simplelog;
+
 use game::gamestate::object::ObjectFactory;
 
 pub mod gamestate;
@@ -10,7 +9,6 @@ pub mod checker;
 use interface::input::PlayerInput;
 use std::collections::HashMap;
 use uuid::Uuid;
-use game::gamestate::gamestate::GameState;
 use game::gamestate::object::ObjectCategory;
 use game::gamestate::object::Main;
 use game::gamestate::object::Point;
@@ -18,6 +16,7 @@ use game::board::Dimensions;
 use game::board::Tile;
 use game::board::Coordinates;
 use std::clone::Clone;
+use std::ops::Deref;
 use game::gamestate::object::Object;
 use std::fmt::Debug;
 use game::gamestate::updater::Update;
@@ -117,11 +116,9 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
             self._phase == StatePhase::Normal;
             Some(self.last_state_as_changes())
         } else {
-            let mut old_objects = Vec::new();
-            for bx in self._current {
-                old_objects.push(bx.clone())
-            }
-            let new_objects = self._updater.update_objects(old_objects, input);
+            &self._updater.update_objects(&mut self._current, input);
+            &self._checker.checks(&mut self._current);
+            None
         }
     }
 
@@ -131,16 +128,16 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
 
 impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
 
-    /* pub fn last_state_as_changes(&mut self) -> Changes {
+    pub fn last_state_as_changes(&mut self) -> Changes {
         let mut changes: Changes = Vec::new();
-        for obj in self.last_state().all_objects() {
-            for pos in obj.position() {
+        for obj in &self._current {
+            for pos in obj.deref().current_position() {
                 changes.push((pos.clone(),Tile::Active(None)));
             }
 
         }
         changes
-    } */
+    }
 
 
 }

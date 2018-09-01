@@ -1,6 +1,7 @@
 extern crate terminalgames;
 extern crate rand;
 extern crate pancurses;
+#[macro_use] extern crate log;
 extern crate simplelog;
 
 
@@ -15,7 +16,6 @@ use pancurses::endwin;
 
 use simplelog::*;
 use std::fs::File;
-use simplelog::CombinedLogger;
 use terminalgames::game::gamestate::StateManager;
 use terminalgames::game::gamestate::updater::Update;
 use terminalgames::game::gamestate::checker::Check;
@@ -31,8 +31,8 @@ fn main() {
     // set up the logging
     CombinedLogger::init(
         vec![
-            //WriteLogger::new(LevelFilter::Info, Config::default(), File::create("trmngames.log")).unwrap(),
-            SimpleLogger::new(LevelFilter::Info, Config::default())
+            TermLogger::new(LevelFilter::Warn, Config::default()).unwrap(),
+            WriteLogger::new(LevelFilter::Info, Config::default(), File::create("my_rust_binary.log").unwrap()),
         ]
     ).unwrap();
 

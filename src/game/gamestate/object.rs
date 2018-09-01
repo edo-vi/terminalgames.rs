@@ -1,3 +1,6 @@
+use super::super::super::simplelog;
+#[macro_use] use super::super::super::log;
+
 use interface::input::PlayerInput;
 use uuid::Uuid;
 use game::board::Coordinates;
@@ -32,20 +35,67 @@ pub trait Object {
     fn category(&self) -> &ObjectCategory;
     fn id(&self) -> &Uuid;
     fn movable(&self) -> bool;
-    fn position(&self) -> &Vec<Coordinates>;
+    fn current_position(&self) -> &Vec<Coordinates>;
+    fn next_position(&self) -> Option<&Vec<Coordinates>>;
 }
 
 #[derive(Debug)]
 pub struct Main {
     _id : Uuid,
     _category: ObjectCategory,
-    _receptive: bool,
+    _movable: bool,
     _position: Vec<Coordinates>,
-    //_actions: HashMap<PlayerInput, Box<FnMut(&mut Object<T>) -> ()>>
+    _next_position: Option<Vec<Coordinates>>
 }
 
 impl Object for Main {
-    fn handle_input(&mut self, input: &PlayerInput) {}//todo
+    fn handle_input(&mut self, input: &PlayerInput) {
+        match input {
+            PlayerInput::Character('a') => {
+                let mut vec = Vec::new();
+                for v in self.current_position() {
+                    vec.push(v.clone());
+                }
+                for pos in &mut vec {
+                    pos.0 = pos.0-1
+                }
+                self._next_position = Some(vec);
+            },
+            PlayerInput::Character('d') => {
+                let mut vec = Vec::new();
+                for v in self.current_position() {
+                    vec.push(v.clone());
+                }
+                for pos in &mut vec {
+                    pos.0 = pos.0+1
+                }
+                self._next_position = Some(vec);
+            },
+            PlayerInput::Character('w') => {
+                let mut vec = Vec::new();
+                for v in self.current_position() {
+                    vec.push(v.clone());
+                }
+                for pos in &mut vec {
+                    pos.1 = pos.1-1
+                }
+                self._next_position = Some(vec);
+            },
+            PlayerInput::Character('s') => {
+                let mut vec = Vec::new();
+                for v in self.current_position() {
+                    vec.push(v.clone());
+                }
+                for pos in &mut vec {
+                    pos.1 = pos.1+1
+                }
+                self._next_position = Some(vec);
+            },
+            _ => ()
+        }
+        info!("{:?}", self._position);
+        info!("{:?}", self._next_position);
+    }
 
     fn category(&self) -> &ObjectCategory {
         &self._category
@@ -56,10 +106,17 @@ impl Object for Main {
     }
 
     fn movable(&self) -> bool {
-        self._receptive
+        self._movable
     }
-    fn position(&self) -> &Vec<Coordinates> {&self._position}
 
+    fn current_position(&self) -> &Vec<Coordinates> {&self._position}
+
+    fn next_position(&self) -> Option<&Vec<Coordinates>> {
+        match self._next_position {
+            None => None,
+            Some(ref coords) => Some(coords)
+        }
+    }
 }
 
 pub trait ObjectFactory {
@@ -73,14 +130,15 @@ impl ObjectFactory for MainFactory {
     fn firsts() -> Vec<Box<Object>> {
         let mut vec = Vec::new();
         vec.push(
-            Box::from(
-                (Main {
+            Box::new(
+                Main {
                         _id: Uuid::new_v4(),
                         _category: ObjectCategory::Main,
-                        _receptive: true,
+                        _movable: true,
                         _position: vec!(Coordinates(5,5)),
-                    }) as Object
-                )) ;
+                        _next_position: None
+                    }
+                ) as Box<Object>) ;
         vec
     }
 }

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+/* use std::collections::HashMap;
 
 use game::gamestate::object::{ObjectFactory, ObjectCategory, Main, MainFactory};
 use game::gamestate::object::Point;
@@ -92,3 +92,4 @@ impl<U> Default for GameState<U> {
         }
     }
 }
+*/
