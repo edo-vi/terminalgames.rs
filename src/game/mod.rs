@@ -144,6 +144,7 @@ where S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
             Some(changes) => {
                 let mut guard= self._get_write_lock();
                 let board= guard.deref_mut();
+                board.clean_with_border();
                 for ch in changes {
                     let index: usize = board.as_point(&ch.0) as usize;
                     board.set_tile(index, ch.1);

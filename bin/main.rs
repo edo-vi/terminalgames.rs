@@ -36,15 +36,14 @@ fn main() {
         ]
     ).unwrap();
 
-    let a: u32 = 32;
     let keys: [char; 5] = ['w','a','s','d','e'];
-    let dim = Dimensions(32,22);
+    let dim = Dimensions(32, 22);
     let board = Board::new(dim.clone());
     let statemanager = PacManStateManager::new(PacManOptions::new(dim), PacManUpdater::default(), PacManChecker::default());
     let mut game = Game::new(board, statemanager);
     game.add_border();
 
-    game.begin_rendering(a, keys.clone());
+    game.begin_rendering(32, keys.clone());
     game.begin_game_loop();
     let dur = time::Duration::from_millis(32);
     let mut string = String::new();

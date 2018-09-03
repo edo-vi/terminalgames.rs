@@ -5,6 +5,7 @@ use interface::input::PlayerInput;
 use uuid::Uuid;
 use game::board::Coordinates;
 use std::collections::HashMap;
+use game::board::Tile;
 
 pub type Point = Coordinates;
 pub type Coords = Vec<Coordinates>;
@@ -36,13 +37,17 @@ pub trait Object {
     fn id(&self) -> &Uuid;
     fn movable(&self) -> bool;
     fn current_position(&self) -> &Vec<Coordinates>;
+    fn set_current_position(&mut self, pos: &Vec<Coordinates>);
     fn next_position(&self) -> Option<&Vec<Coordinates>>;
+    fn set_next_position(&mut self, pos: Option<&Vec<Coordinates>>);
+    fn tile(&self) -> Tile;
 }
 
 #[derive(Debug)]
 pub struct Main {
     _id : Uuid,
     _category: ObjectCategory,
+    _tile: Tile,
     _movable: bool,
     _position: Vec<Coordinates>,
     _next_position: Option<Vec<Coordinates>>
@@ -93,8 +98,6 @@ impl Object for Main {
             },
             _ => ()
         }
-        info!("{:?}", self._position);
-        info!("{:?}", self._next_position);
     }
 
     fn category(&self) -> &ObjectCategory {
@@ -111,11 +114,26 @@ impl Object for Main {
 
     fn current_position(&self) -> &Vec<Coordinates> {&self._position}
 
+    fn set_current_position(&mut self, pos: &Vec<Coordinates>) {
+        self._position = pos.clone()
+    }
+
     fn next_position(&self) -> Option<&Vec<Coordinates>> {
         match self._next_position {
             None => None,
             Some(ref coords) => Some(coords)
         }
+    }
+
+    fn set_next_position(&mut self, pos: Option<&Vec<Coordinates>>) {
+        match pos {
+            None => self._next_position = None,
+            Some(pos) => self._next_position = Some(pos.clone())
+        }
+    }
+
+    fn tile(&self) -> Tile {
+        self._tile.clone()
     }
 }
 
@@ -135,7 +153,8 @@ impl ObjectFactory for MainFactory {
                         _id: Uuid::new_v4(),
                         _category: ObjectCategory::Main,
                         _movable: true,
-                        _position: vec!(Coordinates(5,5)),
+                        _tile: Tile::Active(None),
+                        _position: vec!(Coordinates(4,2)),
                         _next_position: None
                     }
                 ) as Box<Object>) ;

@@ -4,7 +4,7 @@ use std::mem;
 pub type Area = Vec<Tile>;
 
 ///A single tile
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Tile{
     HBorder(Option<char>),
     VBorder(Option<char>),
@@ -79,6 +79,15 @@ impl Board {
         mem::replace(&mut self._tiles, tiles);
     }
 
+    pub fn clean(&mut self) {
+        let Dimensions(x,y) =  self._dimensions.clone();
+        self._tiles = vec![Tile::Empty(None); x as usize * y as usize];
+    }
+
+    pub fn clean_with_border(&mut self) {
+        self.clean();
+        self.set_border();
+    }
     pub fn set_border(&mut self) {
 
         let Dimensions(x,y): Dimensions = *self.dimensions();
@@ -112,14 +121,14 @@ impl Board {
     ///Returns the set of coordinates of a point position.
     pub fn as_coord(&self, point: u16) -> Coordinates {
         let dim_x=self.dimensions().0;
-        Coordinates (point/(dim_x+1), point%(dim_x+1))
+        Coordinates (point%(dim_x), point/(dim_x-1))
     }
 
     ///Returns the point position of a set of coordinates. Accepts only an immutable borrow to the
     /// coordinates to non take it ownership.
     pub fn as_point(&self, coord: &Coordinates) -> u16 {
         let dim_x=self.dimensions().0;
-        coord.0*(dim_x+1)+coord.1
+        coord.1*(dim_x)+coord.0
     }
 
 }

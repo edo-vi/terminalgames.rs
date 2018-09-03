@@ -58,7 +58,7 @@ impl Renderer {
                     _ => window.addch(' ')
                 };
             }
-            window.mv(i as i32 +1,0);
+            window.mv(i as i32 +1 ,0); //have no idea why it works, I changed it randomly
 
         }
         window.refresh();

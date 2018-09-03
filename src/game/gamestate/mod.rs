@@ -88,7 +88,7 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
     fn new(_options: O, _updater: U, _checker: C) -> Self {
         let _current = MainFactory::firsts();
 
-        let mut new_gsm= PacManStateManager {
+        let new_gsm= PacManStateManager {
             _phase: StatePhase::Start,
             _current,
             _options,
@@ -113,12 +113,13 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
 
     fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
         if self._phase == StatePhase::Start {
-            self._phase == StatePhase::Normal;
+            self._phase = StatePhase::Normal;
             Some(self.last_state_as_changes())
         } else {
             &self._updater.update_objects(&mut self._current, input);
             &self._checker.checks(&mut self._current);
-            None
+            self.complete_update();
+            self.produce_changes()
         }
     }
 
@@ -138,7 +139,33 @@ impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
         }
         changes
     }
+    ///Ends the process of updating all objects, by setting their current position as their next one,
+    /// which will become none. This function must be called before ending the update_objects function,
+    /// and after doing all the necessary checks on the objects;
+    pub fn complete_update(&mut self) {
+        for obj in &mut self._current {
+            if obj.next_position() != None {
+                let pos: Vec<Coordinates>;
+                {
+                    pos = obj.next_position().unwrap().clone();
+                }
+                obj.set_current_position(&pos);
+                obj.set_next_position(None);
 
+            }
+
+        }
+    }
+    pub fn produce_changes(&self) -> Option<Changes> {
+        let mut vec = Vec::new();
+        for obj in &self._current {
+            for pos in obj.current_position() {
+                vec.push((pos.clone(), obj.tile()))
+            }
+        }
+        info!("{:?}", vec);
+        Some(vec)
+    }
 
 }
 
