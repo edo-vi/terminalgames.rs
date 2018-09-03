@@ -24,6 +24,7 @@ use game::gamestate::checker::Check;
 use game::gamestate::updater::PacManUpdater;
 use game::gamestate::checker::PacManChecker;
 use game::gamestate::object::MainFactory;
+use game::gamestate::object::WallFactory;
 
 pub type Changes = Vec<(Coordinates, Tile)>;
 
@@ -86,11 +87,13 @@ pub struct PacManStateManager<O: GameOptions, U: Update, C: Check> {
 
 impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateManager<O, U, C> {
     fn new(_options: O, _updater: U, _checker: C) -> Self {
-        let _current = MainFactory::firsts();
-
+        let mut _main = MainFactory::firsts(_options.dimensions());
+        let mut _wall = WallFactory::firsts(_options.dimensions());
+        debug!("{:#?}", _wall[0].current_position());
+        _main.append(&mut _wall);
         let new_gsm= PacManStateManager {
             _phase: StatePhase::Start,
-            _current,
+            _current: _main,
             _options,
             _updater,
             _checker
@@ -163,7 +166,6 @@ impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
                 vec.push((pos.clone(), obj.tile()))
             }
         }
-        info!("{:?}", vec);
         Some(vec)
     }
 

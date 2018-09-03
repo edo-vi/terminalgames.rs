@@ -29,6 +29,17 @@ impl Tile {
         new_vec
     }
 }
+
+pub trait Euclidean {
+    fn x(&self) -> u16;
+    fn y(&self) -> u16;
+}
+
+pub trait Mappable<E: Euclidean> {
+    fn as_coord(&self, point: u16) -> E;
+    fn as_point(&self, coord: &E) -> u16;
+
+}
 #[derive(Debug, Clone)]
 pub struct Dimensions(pub u16,pub u16);
 
@@ -39,6 +50,26 @@ impl PartialEq for Dimensions{
 }
 impl Eq for Dimensions {}
 
+impl Mappable<Coordinates> for Dimensions {
+    fn as_coord(&self, point: u16) -> Coordinates {
+        let dim_x=self.x();
+        Coordinates (point%(dim_x), point/(dim_x))
+    }
+    fn as_point(&self, coord: &Coordinates) -> u16 {
+        let dim_x=self.x();
+        coord.1*(dim_x)+coord.0
+    }
+}
+
+impl Euclidean for Dimensions {
+    fn x(&self) -> u16 {
+        self.0
+    }
+    fn y(&self) -> u16 {
+        self.1
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Coordinates(pub u16,pub u16);
 
@@ -48,6 +79,15 @@ impl PartialEq for Coordinates{
     }
 }
 impl Eq for Coordinates {}
+
+impl Euclidean for Coordinates {
+    fn x(&self) -> u16 {
+        self.0
+    }
+    fn y(&self) -> u16 {
+        self.1
+    }
+}
 
 pub enum BoardError{
     WrongLen(String)
@@ -121,7 +161,7 @@ impl Board {
     ///Returns the set of coordinates of a point position.
     pub fn as_coord(&self, point: u16) -> Coordinates {
         let dim_x=self.dimensions().0;
-        Coordinates (point%(dim_x), point/(dim_x-1))
+        Coordinates (point%(dim_x), point/(dim_x))
     }
 
     ///Returns the point position of a set of coordinates. Accepts only an immutable borrow to the

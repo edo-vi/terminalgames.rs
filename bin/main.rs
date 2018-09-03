@@ -1,9 +1,12 @@
 extern crate terminalgames;
 extern crate rand;
 extern crate pancurses;
-#[macro_use] extern crate log;
-extern crate simplelog;
 
+
+#[macro_use] extern crate log;
+extern crate fern;
+
+extern crate chrono;
 
 use terminalgames::game::Game;
 use terminalgames::game::board::Tile;
@@ -14,7 +17,7 @@ use terminalgames::interface::input::PlayerInput;
 use pancurses::initscr;
 use pancurses::endwin;
 
-use simplelog::*;
+
 use std::fs::File;
 use terminalgames::game::gamestate::StateManager;
 use terminalgames::game::gamestate::updater::Update;
@@ -26,15 +29,27 @@ use terminalgames::game::gamestate::checker::{PacManChecker};
 use terminalgames::game::board::Board;
 use terminalgames::game::gamestate::PacManStateManager;
 
+fn setup_logger() -> Result<(), fern::InitError> {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{}[{}][{}] {}",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                record.target(),
+                record.level(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Debug)
+        .chain(fern::log_file("trmngames.log")?)
+        .apply()?;
+    Ok(())
+}
+
 fn main() {
 
     // set up the logging
-    CombinedLogger::init(
-        vec![
-            TermLogger::new(LevelFilter::Warn, Config::default()).unwrap(),
-            WriteLogger::new(LevelFilter::Info, Config::default(), File::create("my_rust_binary.log").unwrap()),
-        ]
-    ).unwrap();
+    setup_logger();
 
     let keys: [char; 5] = ['w','a','s','d','e'];
     let dim = Dimensions(32, 22);
