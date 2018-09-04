@@ -175,7 +175,7 @@ impl ObjectFactory for MainFactory {
                         _category: ObjectCategory::Main,
                         _movable: true,
                         _tile: Tile::Active(None),
-                        _position: vec!(Coordinates(5,5)),
+                        _position: vec!(Coordinates(5,5), Coordinates(6,6)),
                         _next_position: None
                     }
                 ) as Box<Object>) ;

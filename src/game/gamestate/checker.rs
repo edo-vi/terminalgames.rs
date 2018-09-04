@@ -24,27 +24,24 @@ impl Check for PacManChecker {
 
 impl PacManChecker {
     pub fn check_collision(&self, objs: &mut Vec<Box<Object>>) {
-        let main_pos: Vec<Coordinates> = objs.iter().filter(|a| *(a.deref().category())==ObjectCategory::Main)
-            .flat_map(|a| {
-                match a.next_position() {
-                    None => Vec::new(),
-                    Some(pos) => pos.clone()
-                }
-            }).collect();
+
         let wall_pos: Vec<Coordinates> = objs.iter().filter(|a| *(a.deref().category())==ObjectCategory::Wall)
             .flat_map(|a| {
                 info!("{:?}", a.current_position());
                 a.current_position().clone()
             }).collect();
 
-        let mut mains: Vec<&mut Box<Object>> = objs.iter_mut().filter(|a| *(a.deref().category())==ObjectCategory::Main).collect();
+        let mut mains: Vec<&mut Box<Object>> = objs.iter_mut().filter(|a| {
+            *(a.deref().category())==ObjectCategory::Main && a.deref().next_position() != None
+        }).collect();
 
-        let mut main=&mut mains[0];
-
-        for mainpos in main_pos {
-            if wall_pos.contains(&mainpos) {
-                main.reset_next_position();
+        for m in mains {
+            for p in m.next_position().unwrap().clone() {
+                if wall_pos.contains(&p) {
+                    m.reset_next_position()
+                }
             }
+
         }
     }
 
