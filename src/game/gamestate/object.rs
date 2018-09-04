@@ -255,9 +255,10 @@ impl ObjectFactory for WallFactory {
         let coordinates: Vec<Coordinates> = (0..dim.x()*dim.y()).map(|a| {
             dim.as_coord(a)
         })
-            .filter(|a| {
+            .filter(|a: &Coordinates| {
                 a.x()==0 || a.x()==(dim.x()-1) || a.y()==0 || a.y()==(dim.y())-1
             }).collect();
+
         let vec = vec!(
             Box::new(
                 Wall {

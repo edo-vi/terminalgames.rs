@@ -31,6 +31,7 @@ impl Tile {
 }
 
 pub trait Euclidean {
+    fn new(x: u16, y: u16) -> Self where Self: Sized;
     fn x(&self) -> u16;
     fn y(&self) -> u16;
 }
@@ -50,18 +51,19 @@ impl PartialEq for Dimensions{
 }
 impl Eq for Dimensions {}
 
-impl Mappable<Coordinates> for Dimensions {
-    fn as_coord(&self, point: u16) -> Coordinates {
+impl<E: Euclidean> Mappable<E> for Dimensions {
+    fn as_coord(&self, point: u16) -> E {
         let dim_x=self.x();
-        Coordinates (point%(dim_x), point/(dim_x))
+        E::new(point%(dim_x), point/(dim_x))
     }
-    fn as_point(&self, coord: &Coordinates) -> u16 {
+    fn as_point(&self, coord: &E) -> u16 {
         let dim_x=self.x();
-        coord.1*(dim_x)+coord.0
+        coord.y()*(dim_x)+coord.x()
     }
 }
 
 impl Euclidean for Dimensions {
+    fn new(x: u16, y: u16) -> Self { Dimensions(x,y) }
     fn x(&self) -> u16 {
         self.0
     }
@@ -81,6 +83,7 @@ impl PartialEq for Coordinates{
 impl Eq for Coordinates {}
 
 impl Euclidean for Coordinates {
+    fn new(x: u16, y: u16) -> Self { Coordinates(x,y) }
     fn x(&self) -> u16 {
         self.0
     }
