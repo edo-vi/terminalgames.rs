@@ -18,6 +18,7 @@ pub enum ObjectCategory {
     Main,
     Enemy,
     NonActive,
+    Wall,
     Finished
 }
 
@@ -28,6 +29,7 @@ impl ObjectCategory {
         vec.push(ObjectCategory::Main);
         vec.push(ObjectCategory::Enemy);
         vec.push(ObjectCategory::NonActive);
+        vec.push(ObjectCategory::Wall);
         vec.push(ObjectCategory::Finished);
 
         vec
@@ -43,6 +45,8 @@ pub trait Object {
     fn set_current_position(&mut self, pos: &Vec<Coordinates>);
     fn next_position(&self) -> Option<&Vec<Coordinates>>;
     fn set_next_position(&mut self, pos: Option<&Vec<Coordinates>>);
+    fn reset_next_position(&mut self);
+    fn set_next_position_as_current(&mut self);
     fn tile(&self) -> Tile;
 }
 
@@ -135,9 +139,24 @@ impl Object for Main {
         }
     }
 
+    fn reset_next_position(&mut self) {
+        self._next_position = None;
+    }
+
+    fn set_next_position_as_current (&mut self) {
+        match &self._next_position {
+            None => (), // do nothing, as we can't and shouldn't set current position as None
+            Some(pos) => {
+                self._position=pos.clone();
+            }
+        }
+        self._next_position=None;
+    }
     fn tile(&self) -> Tile {
         self._tile.clone()
     }
+
+
 }
 
 pub trait ObjectFactory {
@@ -211,6 +230,20 @@ impl Object for Wall {
         }
     }
 
+    fn reset_next_position(&mut self) {
+        self._next_position = None;
+    }
+
+    fn set_next_position_as_current (&mut self) {
+        match &self._next_position {
+            None => (), // do nothing, as we can't and shouldn't set current position as None
+            Some(pos) => {
+                self._position=pos.clone();
+            }
+        }
+        self._next_position=None;
+    }
+
     fn tile(&self) -> Tile {
         self._tile.clone()
     }
@@ -220,7 +253,6 @@ pub struct WallFactory {}
 impl ObjectFactory for WallFactory {
     fn firsts(dim: &Dimensions) -> Vec<Box<Object>> {
         let coordinates: Vec<Coordinates> = (0..dim.x()*dim.y()).map(|a| {
-            info!("{:?} <=> {:?}", a, dim.as_coord(a));
             dim.as_coord(a)
         })
             .filter(|a| {
@@ -230,7 +262,7 @@ impl ObjectFactory for WallFactory {
             Box::new(
                 Wall {
                     _id: Uuid::new_v4(),
-                    _category: ObjectCategory::NonActive,
+                    _category: ObjectCategory::Wall,
                     _movable: false,
                     _tile: Tile::VBorder(None),
                     _position: coordinates,

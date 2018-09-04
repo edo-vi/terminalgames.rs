@@ -89,7 +89,7 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
     fn new(_options: O, _updater: U, _checker: C) -> Self {
         let mut _main = MainFactory::firsts(_options.dimensions());
         let mut _wall = WallFactory::firsts(_options.dimensions());
-        debug!("{:#?}", _wall[0].current_position());
+
         _main.append(&mut _wall);
         let new_gsm= PacManStateManager {
             _phase: StatePhase::Start,
@@ -147,16 +147,7 @@ impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
     /// and after doing all the necessary checks on the objects;
     pub fn complete_update(&mut self) {
         for obj in &mut self._current {
-            if obj.next_position() != None {
-                let pos: Vec<Coordinates>;
-                {
-                    pos = obj.next_position().unwrap().clone();
-                }
-                obj.set_current_position(&pos);
-                obj.set_next_position(None);
-
-            }
-
+            obj.set_next_position_as_current();
         }
     }
     pub fn produce_changes(&self) -> Option<Changes> {

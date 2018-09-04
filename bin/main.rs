@@ -60,27 +60,9 @@ fn main() {
 
     game.begin_rendering(32, keys.clone());
     game.begin_game_loop();
-    let dur = time::Duration::from_millis(32);
-    let mut string = String::new();
-    loop {
-        game.change_random_tile();
-        thread::sleep(dur);
-        match game.listen() {
-            PlayerInput::Character(_c) => {
-                if _c=='e' {break;}
-                game.erase_board();
-                game.add_border();
-                string.push_str(&_c.to_string()[..]);
-            },
-
-            _ => ()
-        }
-
-    }
 
     initscr();
     endwin();
-    println!("\n\n{}\n\n",string);
 
 }
 
