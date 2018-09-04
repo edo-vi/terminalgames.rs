@@ -4,7 +4,7 @@ use std::mem;
 pub type Area = Vec<Tile>;
 
 ///A single tile
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Tile{
     HBorder(Option<char>),
     VBorder(Option<char>),
@@ -29,6 +29,18 @@ impl Tile {
         new_vec
     }
 }
+
+pub trait Euclidean {
+    fn new(x: u16, y: u16) -> Self where Self: Sized;
+    fn x(&self) -> u16;
+    fn y(&self) -> u16;
+}
+
+pub trait Mappable<E: Euclidean> {
+    fn as_coord(&self, point: u16) -> E;
+    fn as_point(&self, coord: &E) -> u16;
+
+}
 #[derive(Debug, Clone)]
 pub struct Dimensions(pub u16,pub u16);
 
@@ -39,6 +51,27 @@ impl PartialEq for Dimensions{
 }
 impl Eq for Dimensions {}
 
+impl<E: Euclidean> Mappable<E> for Dimensions {
+    fn as_coord(&self, point: u16) -> E {
+        let dim_x=self.x();
+        E::new(point%(dim_x), point/(dim_x))
+    }
+    fn as_point(&self, coord: &E) -> u16 {
+        let dim_x=self.x();
+        coord.y()*(dim_x)+coord.x()
+    }
+}
+
+impl Euclidean for Dimensions {
+    fn new(x: u16, y: u16) -> Self { Dimensions(x,y) }
+    fn x(&self) -> u16 {
+        self.0
+    }
+    fn y(&self) -> u16 {
+        self.1
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Coordinates(pub u16,pub u16);
 
@@ -48,6 +81,16 @@ impl PartialEq for Coordinates{
     }
 }
 impl Eq for Coordinates {}
+
+impl Euclidean for Coordinates {
+    fn new(x: u16, y: u16) -> Self { Coordinates(x,y) }
+    fn x(&self) -> u16 {
+        self.0
+    }
+    fn y(&self) -> u16 {
+        self.1
+    }
+}
 
 pub enum BoardError{
     WrongLen(String)
@@ -79,6 +122,15 @@ impl Board {
         mem::replace(&mut self._tiles, tiles);
     }
 
+    pub fn clean(&mut self) {
+        let Dimensions(x,y) =  self._dimensions.clone();
+        self._tiles = vec![Tile::Empty(None); x as usize * y as usize];
+    }
+
+    pub fn clean_with_border(&mut self) {
+        self.clean();
+        self.set_border();
+    }
     pub fn set_border(&mut self) {
 
         let Dimensions(x,y): Dimensions = *self.dimensions();
@@ -112,14 +164,14 @@ impl Board {
     ///Returns the set of coordinates of a point position.
     pub fn as_coord(&self, point: u16) -> Coordinates {
         let dim_x=self.dimensions().0;
-        Coordinates (point/(dim_x+1), point%(dim_x+1))
+        Coordinates (point%(dim_x), point/(dim_x))
     }
 
     ///Returns the point position of a set of coordinates. Accepts only an immutable borrow to the
     /// coordinates to non take it ownership.
     pub fn as_point(&self, coord: &Coordinates) -> u16 {
         let dim_x=self.dimensions().0;
-        coord.0*(dim_x+1)+coord.1
+        coord.1*(dim_x)+coord.0
     }
 
 }

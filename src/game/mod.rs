@@ -15,23 +15,37 @@ use self::rand::Rng;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread::JoinHandle;
 use interface::input::PlayerInput;
-use game::gamestate::GameStateManager;
+use game::gamestate::PacManStateManager;
 use game::gamestate::object::Point;
 use game::gamestate::GameOptions;
 use std::mem;
 use game::gamestate::Changes;
+use game::gamestate::StateManager;
+use game::gamestate::updater::Update;
+use game::gamestate::checker::Check;
+use std::marker::PhantomData;
 
-pub struct Game<T> {
+pub struct Game<S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check> {
     _board: Arc<RwLock<Board>>,
     _receiver: Option<Receiver<PlayerInput>>,
-    _state_manager: Option<GameStateManager<T>>,
-    _game_options: Option<GameOptions>
+    _state_manager: S,
+    _phantom1: PhantomData<U>,
+    _phantom2: PhantomData<C>,
+    _phantom3: PhantomData<O>
 }
 
-impl<T> Game<T> {
-    pub fn new() -> Self {
-        Game {_board: Arc::new(RwLock::new(Default::default())), _receiver: Option::None,
-            _state_manager: Option::None, _game_options: Option::None}
+impl<S, O, U, C> Game<S, O, U, C>
+where S: StateManager<O, U, C>, O: GameOptions, U: Update, C: Check
+{
+    pub fn new(_board: Board, _state_manager: S) -> Self {
+        Game {
+            _board: Arc::new(RwLock::new(_board)),
+            _receiver: Option::None,
+            _state_manager,
+            _phantom1: PhantomData,
+            _phantom2: PhantomData,
+            _phantom3: PhantomData
+        }
     }
 
     fn board(&self) -> &RwLock<Board> {
@@ -43,7 +57,7 @@ impl<T> Game<T> {
         match Board::with_tiles(tiles, dimensions) {
             Ok(b) => {
                 self._board=Arc::new(RwLock::new(b));
-                self._game_options = Some(GameOptions { dimensions: dim });
+                self.state_manager_mut().set_options(O::new(dim));
             },
             Err(e) => match e {
                 BoardError::WrongLen(mes) => panic!("Couldn't set the board for the game: {}", mes)
@@ -51,44 +65,18 @@ impl<T> Game<T> {
         }
     }
 
-    pub fn state_manager(&self) -> &GameStateManager<T> {
-        match self._state_manager {
-            Some(ref manager) => manager,
-            None => panic!("No game state manager to unwrap")
-        }
+    pub fn state_manager(&self) -> &S {
+        &self._state_manager
     }
 
-    pub fn state_manager_mut(&mut self) -> &mut GameStateManager<T> {
-        match self._state_manager {
-            Some(ref mut manager) => manager,
-            None => panic!("No game state manager to unwrap")
-        }
+    pub fn state_manager_mut(&mut self) -> &mut S {
+        &mut self._state_manager
     }
 
-    pub fn set_state_manager(&mut self, manager: GameStateManager<T>) {
-        match self._state_manager {
-            None => self._state_manager = Some(manager),
-            Some(ref mut old_manager) => {
-                mem::replace(old_manager,manager);
-            }
-        }
+    pub fn set_state_manager(&mut self, manager: S) {
+        mem::replace(self.state_manager_mut(),manager);
     }
 
-    pub fn options(&self) -> &GameOptions {
-        match self._game_options {
-            Some(ref options) => options,
-            None => panic!("No game options to unwrap!")
-        }
-    }
-
-    pub fn set_options(&mut self, options: GameOptions) {
-        match self._game_options {
-            None => self._game_options=Some(options),
-            Some(ref mut old_options) => {
-                mem::replace(old_options, options);
-            }
-        }
-    }
     pub fn add_border(&mut self) {
         let mut guard: RwLockWriteGuard<Board> = self._get_write_lock();
         guard.deref_mut().set_border();
@@ -116,6 +104,27 @@ impl<T> Game<T> {
         })
     }
 
+    pub fn begin_game_loop(&mut self) {
+        //game logic loop
+        loop {
+            //get the player input
+            let input_received=self.listen();
+
+            if input_received==PlayerInput::Character('e') {
+                break;
+            }
+
+            //do the update logic loop using the player input
+
+            let changes: Option<Changes>;
+            {
+                changes=self.state_manager_mut().update_state(input_received);
+            }
+            self.map_state(changes);
+        }
+
+    }
+
     pub fn listen(&self) -> PlayerInput {
         match self._receiver {
             Some(ref receiver) => {
@@ -128,21 +137,22 @@ impl<T> Game<T> {
         };
     }
 
-    pub fn map_state(&mut self) {
-        let changes: &Option<Vec<Changes>> = self.state_manager().changes();
+    pub fn map_state(&mut self, changes: Option<Changes>) {
         match changes {
             None => (),
             //If there are some changes, map it to the board
             Some(changes) => {
                 let mut guard= self._get_write_lock();
                 let board= guard.deref_mut();
+                board.clean();
                 for ch in changes {
                     let index: usize = board.as_point(&ch.0) as usize;
-                    board.set_tile(index, ch.1.clone());
+                    board.set_tile(index, ch.1);
                 }
             }
         }
     }
+
     pub fn change_random_tile(&self) {
         let mut guard = self._get_write_lock();
         let board: &mut Board = guard.deref_mut();
@@ -180,28 +190,3 @@ impl<T> Game<T> {
     }
 }
 
-impl Game<Point> {
-    pub fn begin_game_loop(&mut self) {
-        //Initialize the game state manager
-        let options: GameOptions = self.options().clone();
-        self.set_state_manager(GameStateManager::<Point>::new(options));
-
-        //game logic loop
-        loop {
-            //get the player input
-            let input_received=self.listen();
-
-            if input_received==PlayerInput::Character('e') {
-                break;
-            }
-
-            //do the update logic loop using the player input
-
-            self.state_manager_mut().game_loop(input_received);
-
-            self.map_state()
-
-        }
-
-    }
-}

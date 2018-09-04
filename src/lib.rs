@@ -1,7 +1,7 @@
 //logging dependencies
-#[macro_use] extern crate log;
-extern crate simplelog;
-
+#[macro_use]
+extern crate log;
+extern crate fern;
 
 extern crate core;
 extern crate uuid;
@@ -16,16 +16,16 @@ mod test {
 
     #[test]
     fn test_conversion() {
-        let board: Board = Board::new(Dimensions(4,3));
+        let board: Board = Board::new(Dimensions(6,5));
 
         assert_eq!(board.as_point(&Coordinates(0, 0)), 0);
-        assert_eq!(board.as_point(&Coordinates(3, 4)), 19);
-        assert_eq!(board.as_point(&Coordinates(2, 2)), 12);
-        assert_eq!(board.as_point(&Coordinates(0, 4)), 4);
-        assert_eq!(board.as_point(&Coordinates(2, 0)), 10);
-        assert_eq!(board.as_coord(19), Coordinates(3, 4));
+        assert_eq!(board.as_point(&Coordinates(3, 1)), 9);
+        assert_eq!(board.as_point(&Coordinates(2, 2)), 14);
+        assert_eq!(board.as_point(&Coordinates(0, 4)), 24);
+        assert_eq!(board.as_point(&Coordinates(2, 0)), 2);
+        assert_eq!(board.as_coord(19), Coordinates(1, 3));
         assert_eq!(board.as_coord(0), Coordinates(0, 0));
-        assert_eq!(board.as_coord(13), Coordinates(2, 3));
+        assert_eq!(board.as_coord(13), Coordinates(1, 2));
     }
 }
 

@@ -28,9 +28,11 @@ impl Renderer {
         let Dimensions(x,y): Dimensions = *board.dimensions();
         window.erase();
 
-        for i in 0..y  {
-            for j in 0..x {
-                match *board.get_tile(j as usize +i as usize *x as usize) {
+        for j in 0..y  {
+            window.mv(j as i32, 0);
+            for i in 0..x {
+
+                match *board.get_tile(i as usize +j as usize *x as usize) {
                     Tile::Empty(v) => {
                         match v{
                             None => window.addch(' '),
@@ -58,7 +60,7 @@ impl Renderer {
                     _ => window.addch(' ')
                 };
             }
-            window.mv(i as i32 +1,0);
+             //have no idea why it works, I changed it randomly
 
         }
         window.refresh();

@@ -1,8 +1,12 @@
 extern crate terminalgames;
 extern crate rand;
 extern crate pancurses;
-extern crate simplelog;
 
+
+#[macro_use] extern crate log;
+extern crate fern;
+
+extern crate chrono;
 
 use terminalgames::game::Game;
 use terminalgames::game::board::Tile;
@@ -13,50 +17,52 @@ use terminalgames::interface::input::PlayerInput;
 use pancurses::initscr;
 use pancurses::endwin;
 
-use simplelog::*;
-use std::fs::File;
-use simplelog::CombinedLogger;
 
+use std::fs::File;
+use terminalgames::game::gamestate::StateManager;
+use terminalgames::game::gamestate::updater::Update;
+use terminalgames::game::gamestate::checker::Check;
+use terminalgames::game::gamestate::GameOptions;
+use terminalgames::game::gamestate::PacManOptions;
+use terminalgames::game::gamestate::updater::{PacManUpdater};
+use terminalgames::game::gamestate::checker::{PacManChecker};
+use terminalgames::game::board::Board;
+use terminalgames::game::gamestate::PacManStateManager;
+
+fn setup_logger() -> Result<(), fern::InitError> {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "{}[{}][{}] {}",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                record.target(),
+                record.level(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Debug)
+        .chain(fern::log_file("lib.log")?)
+        .apply()?;
+    Ok(())
+}
 
 fn main() {
 
     // set up the logging
-    CombinedLogger::init(
-        vec![
-            //WriteLogger::new(LevelFilter::Info, Config::default(), File::create("trmngames.log")).unwrap(),
-            SimpleLogger::new(LevelFilter::Info, Config::default())
-        ]
-    ).unwrap();
+    setup_logger();
 
-    let a: u32 = 32;
     let keys: [char; 5] = ['w','a','s','d','e'];
-    let mut game = Game::new();
-    game.new_board(vec![Tile::Empty(None); 30*22], Dimensions(30, 22));
+    let dim = Dimensions(32, 22);
+    let board = Board::new(dim.clone());
+    let statemanager = PacManStateManager::new(PacManOptions::new(dim), PacManUpdater::default(), PacManChecker::default());
+    let mut game = Game::new(board, statemanager);
     game.add_border();
 
-    game.begin_rendering(a, keys.clone());
+    game.begin_rendering(32, keys.clone());
     game.begin_game_loop();
-    let dur = time::Duration::from_millis(32);
-    let mut string = String::new();
-    loop {
-        game.change_random_tile();
-        thread::sleep(dur);
-        match game.listen() {
-            PlayerInput::Character(_c) => {
-                if _c=='e' {break;}
-                game.erase_board();
-                game.add_border();
-                string.push_str(&_c.to_string()[..]);
-            },
-
-            _ => ()
-        }
-
-    }
 
     initscr();
     endwin();
-    println!("\n\n{}\n\n",string);
 
 }
 

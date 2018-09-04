@@ -1,134 +1,163 @@
-use super::super::log;
-use super::super::simplelog;
+
+use game::gamestate::object::ObjectFactory;
 
 pub mod gamestate;
 pub mod object;
+pub mod updater;
+pub mod checker;
 
 use interface::input::PlayerInput;
 use std::collections::HashMap;
 use uuid::Uuid;
-use game::gamestate::gamestate::GameState;
 use game::gamestate::object::ObjectCategory;
-use game::gamestate::object::Object;
+use game::gamestate::object::Main;
 use game::gamestate::object::Point;
 use game::board::Dimensions;
 use game::board::Tile;
 use game::board::Coordinates;
 use std::clone::Clone;
-use game::gamestate::object::Active;
+use std::ops::Deref;
+use game::gamestate::object::Object;
 use std::fmt::Debug;
+use game::gamestate::updater::Update;
+use game::gamestate::checker::Check;
+use game::gamestate::updater::PacManUpdater;
+use game::gamestate::checker::PacManChecker;
+use game::gamestate::object::MainFactory;
+use game::gamestate::object::WallFactory;
 
-pub type Changes = (Coordinates, Tile);
+pub type Changes = Vec<(Coordinates, Tile)>;
 
-pub type CategoryMap<T> = HashMap<ObjectCategory, HashMap<Uuid, Object<T>>>;
-
-pub trait CategoryMapNew {
-    fn new() -> Self;
-}
-
-impl<T> CategoryMapNew for CategoryMap<T> {
-    fn new() -> Self {
-        let mut newhash: CategoryMap<T> =HashMap::new();
-        for cat in ObjectCategory::categories() {
-            newhash.insert(cat,HashMap::new());
-        }
-
-        newhash
-    }
+pub trait GameOptions: Clone + Default {
+    fn new(board_dimension: Dimensions) -> Self;
+    fn dimensions(&self) -> &Dimensions;
+    fn set_dimensions(&mut self, dim: Dimensions);
 }
 
 #[derive(Clone)]
-pub struct GameOptions {
-    pub dimensions: Dimensions
+pub struct PacManOptions {
+    _dimensions: Dimensions
 }
 
-impl Default for GameOptions {
-    fn default() -> Self {
-        GameOptions {
-            dimensions: Dimensions(0,0)
+impl GameOptions for PacManOptions {
+    fn new(board_dimension: Dimensions) -> Self {
+        PacManOptions {
+            _dimensions: board_dimension
         }
+    }
+    fn dimensions(&self) -> &Dimensions {
+        &self._dimensions
+    }
+    fn set_dimensions(&mut self, dim: Dimensions) {
+        self._dimensions = dim;
     }
 }
 
-enum StatePhase {
+impl Default for PacManOptions {
+    fn default() -> Self {
+        PacManOptions {
+            _dimensions: Dimensions(0,0)
+        }
+    }
+}
+#[derive(PartialEq, Eq)]
+pub enum StatePhase {
     Start,
-    Movement,
-    Action,
-    Checks,
+    Normal,
     End
 }
+/// Game state manager: initializes the game state and updates it accordingly to the player input,
+/// sets up the updater and checker objects, returns the state changes at each cycle.
+pub trait StateManager<O: GameOptions, U: Update, C: Check>{
+    ///Creates a new instance of the State Manager, with the necessary options to manage the game state.
+    fn new(options: O, updater: U, checker: C) -> Self;
+    fn set_options(&mut self, options: O);
+    fn set_updater(&mut self, updater: U);
+    fn set_checker(&mut self, checker: C);
+    fn update_state(&mut self, input: PlayerInput) -> Option<Changes>;
+}
 
-pub struct GameStateManager<T> {
+pub struct PacManStateManager<O: GameOptions, U: Update, C: Check> {
     _phase: StatePhase,
-    _current: GameState<T>,
-    _history: Vec<GameState<T>>,
-    _input: PlayerInput,
-    _options: GameOptions,
-    _changes: Option<Vec<Changes>>
+    _current: Vec<Box<Object>>,
+    _options: O,
+    _updater: U,
+    _checker: C
 }
 
-impl<T> GameStateManager<T> {
+impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateManager<O, U, C> {
+    fn new(_options: O, _updater: U, _checker: C) -> Self {
+        let mut _main = MainFactory::firsts(_options.dimensions());
+        let mut _wall = WallFactory::firsts(_options.dimensions());
 
-    fn input(&self) -> &PlayerInput {
-        &self._input
-    }
-
-    pub fn set_input(&mut self, input: PlayerInput) {
-        self._input = input;
-    }
-
-    fn save_state(&mut self, state: GameState<T>) {
-        self._history.push(state);
-    }
-
-    fn last_state(&self) -> &GameState<T> {
-        match self._history.last() {
-            Some(ref state) => state,
-            None => panic!("History is empty, no last state to extract!")
-        }
-    }
-    pub fn changes(&self) -> &Option<Vec<Changes>> {
-        &self._changes
-    }
-    pub fn game_loop(&mut self, input: PlayerInput) {
-
-        //save input
-        self.set_input(input);
-
-
-    }
-
-
-
-}
-
-impl GameStateManager<Point> {
-    pub fn new(_options: GameOptions) -> Self {
-        let current = GameState::<Point>::with_objects();
-        let mut history = Vec::new();
-        history.push(current);
-
-        let mut new_gsm= GameStateManager {
+        _main.append(&mut _wall);
+        let new_gsm= PacManStateManager {
             _phase: StatePhase::Start,
-            _current: GameState::new(),
-            _history : history,
-            _input: PlayerInput::None,
+            _current: _main,
             _options,
-            _changes: None
+            _updater,
+            _checker
         };
         // this makes sense because when a new game_state_manager is instantiate the initial state is
         // set, and this state is to be considered as a change from the previous null state, when
         // the board is still to be rendered
-        new_gsm.lasts_as_changes();
         new_gsm
     }
-    //this requires a concrete type (Point or Coords)
-    pub fn lasts_as_changes(&mut self) {
-        let mut changes: Vec<Changes> = Vec::new();
-        for obj in self.last_state().all_objects() {
-            changes.push((obj.position().clone(),Tile::Active(None)));
+
+    fn set_options(&mut self, options: O) {
+        self._options = options;
+    }
+    fn set_updater(&mut self, updater: U) {
+        self._updater = updater;
+    }
+    fn set_checker(&mut self, checker: C) {
+        self._checker = checker;
+    }
+
+    fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
+        if self._phase == StatePhase::Start {
+            self._phase = StatePhase::Normal;
+            Some(self.last_state_as_changes())
+        } else {
+            &self._updater.update_objects(&mut self._current, input);
+            &self._checker.checks(&mut self._current);
+            self.complete_update();
+            self.produce_changes()
         }
-        self._changes=Some(changes);
+    }
+
+
+
+}
+
+impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
+
+    pub fn last_state_as_changes(&mut self) -> Changes {
+        let mut changes: Changes = Vec::new();
+        for obj in &self._current {
+            for pos in obj.deref().current_position() {
+                changes.push((pos.clone(),Tile::Active(None)));
+            }
+
+        }
+        changes
+    }
+    ///Ends the process of updating all objects, by setting their current position as their next one,
+    /// which will become none. This function must be called before ending the update_objects function,
+    /// and after doing all the necessary checks on the objects;
+    pub fn complete_update(&mut self) {
+        for obj in &mut self._current {
+            obj.set_next_position_as_current();
+        }
+    }
+    pub fn produce_changes(&self) -> Option<Changes> {
+        let mut vec = Vec::new();
+        for obj in &self._current {
+            for pos in obj.current_position() {
+                vec.push((pos.clone(), obj.tile()))
+            }
+        }
+        Some(vec)
     }
 
 }
