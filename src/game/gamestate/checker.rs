@@ -27,7 +27,6 @@ impl PacManChecker {
 
         let wall_pos: Vec<Coordinates> = objs.iter().filter(|a| *(a.deref().category())==ObjectCategory::Wall)
             .flat_map(|a| {
-                info!("{:?}", a.current_position());
                 a.current_position().clone()
             }).collect();
 

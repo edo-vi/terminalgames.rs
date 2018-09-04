@@ -41,7 +41,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
             ))
         })
         .level(log::LevelFilter::Debug)
-        .chain(fern::log_file("trmngames.log")?)
+        .chain(fern::log_file("lib.log")?)
         .apply()?;
     Ok(())
 }
