@@ -19,7 +19,8 @@ pub enum ObjectCategory {
     Enemy,
     NonActive,
     Wall,
-    Finished
+    Finished,
+    PowerUp
 }
 
 impl ObjectCategory {
@@ -31,6 +32,7 @@ impl ObjectCategory {
         vec.push(ObjectCategory::NonActive);
         vec.push(ObjectCategory::Wall);
         vec.push(ObjectCategory::Finished);
+        vec.push(ObjectCategory::PowerUp);
 
         vec
     }
@@ -69,9 +71,10 @@ impl Object for Snake {
                 for v in self.current_position() {
                     vec.push(v.clone());
                 }
-                for pos in &mut vec {
-                    pos.0 = pos.0-1
-                }
+                let first = vec[0].clone();
+                vec.insert(1, first);
+
+                vec[0].0 -= 1;
                 self._next_position = Some(vec);
             },
             PlayerInput::Character('d') => {
@@ -79,9 +82,12 @@ impl Object for Snake {
                 for v in self.current_position() {
                     vec.push(v.clone());
                 }
-                for pos in &mut vec {
-                    pos.0 = pos.0+1
-                }
+
+                let first = vec[0].clone();
+                vec.insert(1, first);
+
+                vec[0].0 += 1;
+
                 self._next_position = Some(vec);
             },
             PlayerInput::Character('w') => {
@@ -89,9 +95,11 @@ impl Object for Snake {
                 for v in self.current_position() {
                     vec.push(v.clone());
                 }
-                for pos in &mut vec {
-                    pos.1 = pos.1-1
-                }
+
+                let first = vec[0].clone();
+                vec.insert(1, first);
+
+                vec[0].1 -= 1;
                 self._next_position = Some(vec);
             },
             PlayerInput::Character('s') => {
@@ -99,9 +107,11 @@ impl Object for Snake {
                 for v in self.current_position() {
                     vec.push(v.clone());
                 }
-                for pos in &mut vec {
-                    pos.1 = pos.1+1
-                }
+
+                let first = vec[0].clone();
+                vec.insert(1, first);
+
+                vec[0].1 += 1;
                 self._next_position = Some(vec);
             },
             _ => ()
@@ -176,9 +186,10 @@ impl ObjectFactory for MainFactory {
                         _category: ObjectCategory::Main,
                         _movable: true,
                         _tile: Tile::Active(None),
-                        _position: vec!(Coordinates(6,5), Coordinates(5,5)),
+                        _position: vec!(Coordinates(9,5), Coordinates(8,5), Coordinates(7,5) ,
+                                        Coordinates(6,5), Coordinates(5,5), Coordinates(4,5)),
                         _next_position: None,
-                        _last: Coordinates(5,5)
+                        _last: Coordinates(4,5)
                     }
                 ) as Box<Object>) ;
 
@@ -269,6 +280,27 @@ impl ObjectFactory for WallFactory {
                     _movable: false,
                     _tile: Tile::VBorder(None),
                     _position: coordinates,
+                    _next_position: None
+                }
+            ) as Box<Object>
+        );
+
+        vec
+    }
+}
+
+pub struct PowerUpFactory{}
+
+impl ObjectFactory for PowerUpFactory {
+    fn firsts(dim: &Dimensions) -> Vec<Box<Object>> {
+        let vec = vec!(
+            Box::new(
+                Wall {
+                    _id: Uuid::new_v4(),
+                    _category: ObjectCategory::PowerUp,
+                    _movable: false,
+                    _tile: Tile::Active(Some('\'')),
+                    _position: vec!(Coordinates(9,9)),
                     _next_position: None
                 }
             ) as Box<Object>

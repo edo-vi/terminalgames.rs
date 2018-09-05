@@ -24,7 +24,7 @@ use game::gamestate::updater::PacManUpdater;
 use game::gamestate::checker::PacManChecker;
 use game::gamestate::object::MainFactory;
 use game::gamestate::object::WallFactory;
-
+use game::gamestate::object::PowerUpFactory;
 pub type Changes = Vec<(Coordinates, Tile)>;
 
 pub trait GameOptions: Clone + Default {
@@ -88,8 +88,9 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
     fn new(_options: O, _updater: U, _checker: C) -> Self {
         let mut _main = MainFactory::firsts(_options.dimensions());
         let mut _wall = WallFactory::firsts(_options.dimensions());
-
+        let mut _powerups = PowerUpFactory::firsts(_options.dimensions());
         _main.append(&mut _wall);
+        _main.append(&mut _powerups);
         let new_gsm= PacManStateManager {
             _phase: StatePhase::Start,
             _current: _main,
