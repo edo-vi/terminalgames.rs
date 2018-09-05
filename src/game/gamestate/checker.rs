@@ -10,12 +10,12 @@ pub trait Check: Default{
 }
 
 #[derive(Default)]
-pub struct PacManChecker {}
+pub struct SnakeChecker {}
 
 
-impl Check for PacManChecker {
+impl Check for SnakeChecker {
     fn new() -> Self {
-        PacManChecker {}
+        SnakeChecker {}
     }
     fn checks(&self, objs: &mut Vec<Box<Object>>) {
         Self::check_collision(objs);
@@ -23,7 +23,7 @@ impl Check for PacManChecker {
     }
 }
 
-impl PacManChecker {
+impl SnakeChecker {
     pub fn check_collision(objs: &mut Vec<Box<Object>>) {
 
         let wall_pos: Vec<Coordinates> = objs.iter().filter(|a| *(a.deref().category())==ObjectCategory::Wall)

@@ -185,9 +185,8 @@ impl ObjectFactory for MainFactory {
                         _id: Uuid::new_v4(),
                         _category: ObjectCategory::Main,
                         _movable: true,
-                        _tile: Tile::Active(None),
-                        _position: vec!(Coordinates(9,5), Coordinates(8,5), Coordinates(7,5) ,
-                                        Coordinates(6,5), Coordinates(5,5), Coordinates(4,5)),
+                        _tile: Tile::Active(Some('#')),
+                        _position: vec!(Coordinates(6,5), Coordinates(5,5), Coordinates(4,5)),
                         _next_position: None,
                         _last: Coordinates(4,5)
                     }

@@ -6,17 +6,16 @@ use std::borrow::BorrowMut;
 pub trait Update: Default {
     fn new() -> Self;
     fn update_objects(&self, objs: &mut Vec<Box<Object>>, input: PlayerInput);
-    fn periodic(&self, objs: &mut Vec<Box<Object>>);
     fn update_phase();
 }
 
 #[derive(Default)]
-pub struct PacManUpdater {
+pub struct SnakeUpdater {
 
 }
-impl Update for PacManUpdater {
+impl Update for SnakeUpdater {
     fn new() -> Self {
-        PacManUpdater {}
+        SnakeUpdater {}
     }
     fn update_objects(& self, objs: &mut Vec<Box<Object>>, input: PlayerInput)  {
         for obj in objs {
@@ -24,9 +23,6 @@ impl Update for PacManUpdater {
         }
     }
 
-    fn periodic(&self, periodic_objs: &mut Vec<Box<Object>>) {
-
-    }
     fn update_phase() {
 
     }

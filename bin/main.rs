@@ -23,11 +23,11 @@ use terminalgames::game::gamestate::StateManager;
 use terminalgames::game::gamestate::updater::Update;
 use terminalgames::game::gamestate::checker::Check;
 use terminalgames::game::gamestate::GameOptions;
-use terminalgames::game::gamestate::PacManOptions;
-use terminalgames::game::gamestate::updater::{PacManUpdater};
-use terminalgames::game::gamestate::checker::{PacManChecker};
+use terminalgames::game::gamestate::SnakeOptions;
+use terminalgames::game::gamestate::updater::{SnakeUpdater};
+use terminalgames::game::gamestate::checker::{SnakeChecker};
 use terminalgames::game::board::Board;
-use terminalgames::game::gamestate::PacManStateManager;
+use terminalgames::game::gamestate::SnakeStateManager;
 
 fn setup_logger() -> Result<(), fern::InitError> {
     fern::Dispatch::new()
@@ -52,9 +52,9 @@ fn main() {
     setup_logger();
 
     let keys: [char; 5] = ['w','a','s','d','e'];
-    let dim = Dimensions(32, 22);
+    let dim = Dimensions(40, 22);
     let board = Board::new(dim.clone());
-    let statemanager = PacManStateManager::new(PacManOptions::new(dim), PacManUpdater::default(), PacManChecker::default());
+    let statemanager = SnakeStateManager::new(SnakeOptions::new(dim), SnakeUpdater::default(), SnakeChecker::default());
     let mut game = Game::new(board, statemanager);
     game.add_border();
 
