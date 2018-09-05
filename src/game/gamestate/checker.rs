@@ -1,7 +1,7 @@
 use game::gamestate::object::Object;
 use game::gamestate::object::ObjectCategory;
 use std::ops::Deref;
-use game::gamestate::object::Main;
+use game::gamestate::object::Snake;
 use game::board::Coordinates;
 
 pub trait Check: Default{

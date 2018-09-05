@@ -51,16 +51,17 @@ pub trait Object {
 }
 
 #[derive(Debug)]
-pub struct Main {
+pub struct Snake {
     _id : Uuid,
     _category: ObjectCategory,
     _tile: Tile,
     _movable: bool,
     _position: Vec<Coordinates>,
-    _next_position: Option<Vec<Coordinates>>
+    _next_position: Option<Vec<Coordinates>>,
+    _last: Coordinates
 }
 
-impl Object for Main {
+impl Object for Snake {
     fn handle_input(&mut self, input: &PlayerInput) {
         match input {
             PlayerInput::Character('a') => {
@@ -170,13 +171,14 @@ impl ObjectFactory for MainFactory {
     fn firsts(dim: &Dimensions) -> Vec<Box<Object>> {
         let vec = vec!(
             Box::new(
-                Main {
+                Snake {
                         _id: Uuid::new_v4(),
                         _category: ObjectCategory::Main,
                         _movable: true,
                         _tile: Tile::Active(None),
-                        _position: vec!(Coordinates(4,6), Coordinates(5,5), Coordinates(6,6)),
-                        _next_position: None
+                        _position: vec!(Coordinates(6,5), Coordinates(5,5)),
+                        _next_position: None,
+                        _last: Coordinates(5,5)
                     }
                 ) as Box<Object>) ;
 
