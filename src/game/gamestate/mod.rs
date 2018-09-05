@@ -10,7 +10,6 @@ use interface::input::PlayerInput;
 use std::collections::HashMap;
 use uuid::Uuid;
 use game::gamestate::object::ObjectCategory;
-use game::gamestate::object::Main;
 use game::gamestate::object::Point;
 use game::board::Dimensions;
 use game::board::Tile;
@@ -121,8 +120,8 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
         } else {
             &self._updater.update_objects(&mut self._current, input);
             &self._checker.checks(&mut self._current);
-            self.complete_update();
-            self.produce_changes()
+            Self::complete_update(&mut self._current);
+            Self::produce_changes(&mut self._current)
         }
     }
 
@@ -145,14 +144,15 @@ impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
     ///Ends the process of updating all objects, by setting their current position as their next one,
     /// which will become none. This function must be called before ending the update_objects function,
     /// and after doing all the necessary checks on the objects;
-    pub fn complete_update(&mut self) {
-        for obj in &mut self._current {
+    pub fn complete_update(objs: &mut Vec<Box<Object>>) {
+        for obj in objs {
             obj.set_next_position_as_current();
         }
     }
-    pub fn produce_changes(&self) -> Option<Changes> {
+    ///Produce a (Coordinates, Tile) vector based on the current position of all objects passed as arguments
+    pub fn produce_changes(objs: &mut Vec<Box<Object>>) -> Option<Changes> {
         let mut vec = Vec::new();
-        for obj in &self._current {
+        for obj in objs {
             for pos in obj.current_position() {
                 vec.push((pos.clone(), obj.tile()))
             }
