@@ -1,5 +1,7 @@
 #![feature(specialization)]
 #![feature(duration_as_u128)]
+#![feature(type_ascription)]
+
 //logging dependencies
 #[macro_use]
 extern crate log;

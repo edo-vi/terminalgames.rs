@@ -1,6 +1,9 @@
 
 #[macro_use] use super::super::super::log;
 
+extern crate rand;
+use self::rand::Rng;
+
 use interface::input::PlayerInput;
 use uuid::Uuid;
 use game::board::Coordinates;
@@ -9,6 +12,8 @@ use game::board::Tile;
 use game::board::Dimensions;
 use game::board::Mappable;
 use game::board::Euclidean;
+use game::gamestate::GameOptions;
+use game::gamestate::SnakeOptions;
 
 pub type Point = Coordinates;
 pub type Coords = Vec<Coordinates>;
@@ -170,15 +175,15 @@ impl Object for Snake {
 
 }
 
-pub trait ObjectFactory {
-    fn firsts(dim: &Dimensions) -> Vec<Box<Object>>;
+pub trait ObjectFactory<O: GameOptions> {
+    fn firsts(_options: O) -> Vec<Box<Object>>;
 }
 
 pub struct MainFactory {}
 
-impl ObjectFactory for MainFactory {
+impl<O: GameOptions> ObjectFactory<O> for MainFactory {
     ///Creates the first objects to be placed on the board
-    fn firsts(dim: &Dimensions) -> Vec<Box<Object>> {
+    fn firsts(_options: O) -> Vec<Box<Object>> {
         let vec = vec!(
             Box::new(
                 Snake {
@@ -262,9 +267,10 @@ impl Object for Wall {
 }
 pub struct WallFactory {}
 
-impl ObjectFactory for WallFactory {
-    fn firsts(dim: &Dimensions) -> Vec<Box<Object>> {
-        let coordinates: Vec<Coordinates> = (0..dim.x()*dim.y()).map(|a| {
+impl<O: GameOptions> ObjectFactory<O> for WallFactory {
+    fn firsts(_options: O) -> Vec<Box<Object>> {
+        let dim = _options.dimensions();
+        let coordinates: Vec<Coordinates> = (0.. dim.x()*dim.y()).map(|a| {
             dim.as_coord(a)
         })
             .filter(|a: &Coordinates| {
@@ -290,8 +296,8 @@ impl ObjectFactory for WallFactory {
 
 pub struct PowerUpFactory{}
 
-impl ObjectFactory for PowerUpFactory {
-    fn firsts(dim: &Dimensions) -> Vec<Box<Object>> {
+default impl<O: GameOptions> ObjectFactory<O> for PowerUpFactory {
+    fn firsts(_options: O) -> Vec<Box<Object>> {
         let vec = vec!(
             Box::new(
                 Wall {
@@ -308,3 +314,31 @@ impl ObjectFactory for PowerUpFactory {
         vec
     }
 }
+
+//specialized implementation of ObjectFactory for PowerUpFactory
+impl ObjectFactory<SnakeOptions> for PowerUpFactory {
+    fn firsts(_options: SnakeOptions) -> Vec<Box<Object>> {
+        let coord: Coordinates;
+        match _options.free_positions() {
+            None => coord = Coordinates(9,9),
+            Some(ref free) => {
+                coord = rand::thread_rng().choose(free).unwrap().clone();
+            }
+        }
+        let vec = vec!(
+            Box::new(
+                Wall {
+                    _id: Uuid::new_v4(),
+                    _category: ObjectCategory::PowerUp,
+                    _movable: false,
+                    _tile: Tile::Active(Some('o')),
+                    _position: vec!(coord),
+                    _next_position: None
+                }
+            ) as Box<Object>
+        );
+
+        vec
+    }
+}
+
