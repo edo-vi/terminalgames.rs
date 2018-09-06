@@ -90,6 +90,7 @@ impl SnakeOptions {
 pub enum StatePhase {
     Start,
     Normal,
+    Create,
     End
 }
 /// Game state manager: initializes the game state and updates it accordingly to the player input,
@@ -115,30 +116,14 @@ pub struct SnakeStateManager<O: GameOptions, U: Update, C: Check> {
 //Specialized implementation with SnakeOptions
 impl<U: Update, C: Check> StateManager<SnakeOptions, U, C> for SnakeStateManager<SnakeOptions, U, C> {
     fn new(mut _options: SnakeOptions, _updater: U, _checker: C) -> Self {
-        let mut _main = MainFactory::firsts(_options.clone());
-        let mut _wall = WallFactory::firsts(_options.clone());
+        let mut _main: Vec<Box<Object>> = MainFactory::firsts(_options.clone());
+        let mut _wall: Vec<Box<Object>> = WallFactory::firsts(_options.clone());
 
         _main.append(&mut _wall);
 
         //get all the occupied position to randomly chose one (not taken) to be the powerup position
-        let occupied_pos: Vec<Coordinates> = _main.iter().filter(|a| *(a.deref().category())!=ObjectCategory::PowerUp)
-            .flat_map(|a| {
-                a.current_position().clone()
-            }).collect();
 
-        let mut free_pos: Vec<Coordinates> = Vec::new();
-        //get free positions
-        for pos in (0.._options.dimensions().x()*_options.dimensions().y()).map(|a: u16| {
-            let b: Coordinates = _options.dimensions().as_coord(a);
-            b
-        }) {
-            if !occupied_pos.contains(&pos) {
-                free_pos.push(pos.clone())
-            }
-        }
-        _options.set_free_positions(Some(free_pos));
-
-        let mut _powerups = PowerUpFactory::firsts(_options.clone());
+        let mut _powerups = PowerUpFactory::new_on_free(_options.clone(), &mut _main);
 
         _main.append(&mut _powerups);
         let new_gsm= SnakeStateManager {
@@ -168,10 +153,10 @@ impl<U: Update, C: Check> StateManager<SnakeOptions, U, C> for SnakeStateManager
     fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
         let new_instant = Instant::now();
         //if it is time to move the snake
-        if new_instant.duration_since(self._timer).as_millis() >= 110 {
+        if new_instant.duration_since(self._timer).as_millis() >= 90 {
             let input = self._options.last_input().clone();
             &self._updater.update_objects(&mut self._current, input);
-            &self._checker.checks(&mut self._current);
+            &self._checker.checks(&mut self._current, &mut self._phase);
             self._timer=new_instant;
         }
         //else if it is the first update
@@ -179,22 +164,43 @@ impl<U: Update, C: Check> StateManager<SnakeOptions, U, C> for SnakeStateManager
             self._phase = StatePhase::Normal;
         }
         //any other case
-        else {
+        else if self._phase == StatePhase::Normal {
             &self._updater.update_objects(&mut self._current, input.clone());
-            &self._checker.checks(&mut self._current);
+            &self._checker.checks(&mut self._current, &mut self._phase);
             //set last input as the last input the player has given, if it is a character
             match input {
                 PlayerInput::Character('a') | PlayerInput::Character('s') |
                 PlayerInput::Character('d') | PlayerInput::Character('w') => {
                     self._options.set_last_input(input);
                     //reset timer
-                    self._timer=Instant::now();
+                    self._timer = Instant::now();
                 },
                 _ => ()
             }
-
-
         }
+        else if self._phase == StatePhase::Create {
+            self._phase = StatePhase::Normal;
+            let mut new = PowerUpFactory::new_on_free(self._options.clone(), &mut self._current);
+            self._current.append(&mut new);
+
+            //continue normally
+            &self._updater.update_objects(&mut self._current, input.clone());
+            &self._checker.checks(&mut self._current, &mut self._phase);
+            //set last input as the last input the player has given, if it is a character
+            match input {
+                PlayerInput::Character('a') | PlayerInput::Character('s') |
+                PlayerInput::Character('d') | PlayerInput::Character('w') => {
+                    self._options.set_last_input(input);
+                    //reset timer
+                    self._timer = Instant::now();
+                },
+                _ => ()
+            }
+        } else {
+        }
+
+
+
         //In any case, complete the update and then produce the changes
         Self::complete_update(&mut self._current);
         Self::produce_changes(&mut self._current)

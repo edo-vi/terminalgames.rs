@@ -14,6 +14,7 @@ use game::board::Mappable;
 use game::board::Euclidean;
 use game::gamestate::GameOptions;
 use game::gamestate::SnakeOptions;
+use std::ops::Deref;
 
 pub type Point = Coordinates;
 pub type Coords = Vec<Coordinates>;
@@ -325,7 +326,7 @@ impl ObjectFactory<SnakeOptions> for PowerUpFactory {
                 coord = rand::thread_rng().choose(free).unwrap().clone();
             }
         }
-        let vec = vec!(
+        vec!(
             Box::new(
                 Wall {
                     _id: Uuid::new_v4(),
@@ -336,9 +337,40 @@ impl ObjectFactory<SnakeOptions> for PowerUpFactory {
                     _next_position: None
                 }
             ) as Box<Object>
-        );
-
-        vec
+        )
     }
 }
 
+impl PowerUpFactory {
+    pub fn new_on_free(_options: SnakeOptions, objs: &mut Vec<Box<Object>>) -> Vec<Box<Object>> {
+        let occupied_pos: Vec<Coordinates> = objs.iter().filter(|a| *(a.deref().category())!=ObjectCategory::PowerUp)
+            .flat_map(|a| {
+                a.current_position().clone()
+            }).collect();
+
+        let mut free_pos: Vec<Coordinates> = Vec::new();
+
+        //get free positions
+        for pos in (0.._options.dimensions().x()*_options.dimensions().y()).map(|a: u16| {
+            let b: Coordinates = _options.dimensions().as_coord(a);
+            b
+        }) {
+            if !occupied_pos.contains(&pos) {
+                free_pos.push(pos.clone())
+            }
+        }
+
+        vec!(
+            Box::new(
+                Wall {
+                    _id: Uuid::new_v4(),
+                    _category: ObjectCategory::PowerUp,
+                    _movable: false,
+                    _tile: Tile::Active(Some('o')),
+                    _position: vec!(rand::thread_rng().choose(&free_pos).unwrap().clone()),
+                    _next_position: None
+                }
+            ) as Box<Object>
+        )
+    }
+}

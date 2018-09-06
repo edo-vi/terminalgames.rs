@@ -3,10 +3,12 @@ use game::gamestate::object::ObjectCategory;
 use std::ops::Deref;
 use game::gamestate::object::Snake;
 use game::board::Coordinates;
+use game::gamestate::object::PowerUpFactory;
+use game::gamestate::StatePhase;
 
 pub trait Check: Default{
     fn new() -> Self;
-    fn checks(&self, objs: &mut Vec<Box<Object>>);
+    fn checks(&self, objs: &mut Vec<Box<Object>>, phase: &mut StatePhase);
 }
 
 #[derive(Default)]
@@ -17,9 +19,9 @@ impl Check for SnakeChecker {
     fn new() -> Self {
         SnakeChecker {}
     }
-    fn checks(&self, objs: &mut Vec<Box<Object>>) {
+    fn checks(&self, objs: &mut Vec<Box<Object>>, phase: &mut StatePhase) {
         Self::check_collision(objs);
-        Self::check_powerup(objs);
+        Self::check_powerup(objs, phase);
     }
 }
 
@@ -46,7 +48,7 @@ impl SnakeChecker {
     }
     //I know it's coded shittly, I just needed to get around the double borrow of objs in mut snakes
     // and the iter().enumerate
-    pub fn check_powerup(objs: &mut Vec<Box<Object>>) {
+    pub fn check_powerup(objs: &mut Vec<Box<Object>>, phase: &mut StatePhase) {
         let powerup_pos: Vec<Coordinates> = objs.iter().filter(|a| *(a.deref().category())==ObjectCategory::PowerUp)
             .flat_map(|a| {
                 a.current_position().clone()
@@ -82,10 +84,13 @@ impl SnakeChecker {
                 }
             }
             objs.remove(index);
+            //change phase to create
+            match phase {
+                _ => *phase = StatePhase::Create
+            }
         }
 
     }
-
 
 
 }
