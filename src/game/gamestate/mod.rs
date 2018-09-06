@@ -150,7 +150,43 @@ impl<U: Update, C: Check> StateManager<SnakeOptions, U, C> for SnakeStateManager
         self._checker = checker;
     }
 
-    fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
+    fn update_state(&mut self, mut input: PlayerInput) -> Option<Changes> {
+        //check if the input is the opposite of the last: if it is, invalidate it
+        let new_input = match self._options.last_input() {
+            PlayerInput::Character('w') => {
+                if input==PlayerInput::Character('s') {
+                    PlayerInput::Invalid
+                } else {
+                    input
+                }
+            },
+            PlayerInput::Character('s') => {
+                if input==PlayerInput::Character('w') {
+                    PlayerInput::Invalid
+                } else {
+                    input
+                }
+            },
+            PlayerInput::Character('d') => {
+                if input==PlayerInput::Character('a') {
+                    PlayerInput::Invalid
+                } else {
+                    input
+                }
+            },
+            PlayerInput::Character('a') => {
+                if input==PlayerInput::Character('d') {
+                    PlayerInput::Invalid
+                } else {
+                    input
+                }
+            }
+            _ => input
+        };
+
+        let input = new_input;
+
+
         let new_instant = Instant::now();
         //if it is time to move the snake
         if new_instant.duration_since(self._timer).as_millis() >= 110 {
@@ -163,7 +199,7 @@ impl<U: Update, C: Check> StateManager<SnakeOptions, U, C> for SnakeStateManager
         else if self._phase == StatePhase::Start {
             self._phase = StatePhase::Normal;
         }
-        //any other case
+        //normal phase
         else if self._phase == StatePhase::Normal {
             &self._updater.update_objects(&mut self._current, input.clone());
             &self._checker.checks(&mut self._current, &mut self._phase);
@@ -177,7 +213,7 @@ impl<U: Update, C: Check> StateManager<SnakeOptions, U, C> for SnakeStateManager
                 },
                 _ => ()
             }
-        }
+        }//time to create a new powerup
         else if self._phase == StatePhase::Create {
             self._phase = StatePhase::Normal;
             let mut new = PowerUpFactory::new_on_free(self._options.clone(), &mut self._current);

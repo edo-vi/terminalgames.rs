@@ -40,7 +40,7 @@ fn setup_logger() -> Result<(), fern::InitError> {
                 message
             ))
         })
-        .level(log::LevelFilter::Debug)
+        .level(log::LevelFilter::Error)
         .chain(fern::log_file("lib.log")?)
         .apply()?;
     Ok(())
@@ -52,7 +52,7 @@ fn main() {
     setup_logger();
 
     let keys: [char; 5] = ['w','a','s','d','e'];
-    let dim = Dimensions(40, 22);
+    let dim = Dimensions(30, 20);
     let board = Board::new(dim.clone());
     let statemanager = SnakeStateManager::new(SnakeOptions::new(dim), SnakeUpdater::default(), SnakeChecker::default());
     let mut game = Game::new(board, statemanager);
@@ -63,6 +63,7 @@ fn main() {
 
     initscr();
     endwin();
+    println!("\n Snake 🐍 by Edoardo Zorzi, 06/09/2018\n");
 
 }
 

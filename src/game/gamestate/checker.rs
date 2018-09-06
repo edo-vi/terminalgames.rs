@@ -52,6 +52,8 @@ impl SnakeChecker {
                 || main_pos.contains(&m.next_position().unwrap().clone()[0]){
                 initscr();
                 endwin();
+                println!("\n          ////////////////////////////\n          ///     Hai perso! 👎    ///\n          ////////////////////////////\n");
+                println!("Snake 🐍 by Edoardo Zorzi, 06/09/2018");
                 process::exit(1);
             }
 
