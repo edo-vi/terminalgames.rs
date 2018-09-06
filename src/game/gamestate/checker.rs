@@ -5,6 +5,8 @@ use game::gamestate::object::Snake;
 use game::board::Coordinates;
 use game::gamestate::object::PowerUpFactory;
 use game::gamestate::StatePhase;
+use std::process;
+use super::super::pancurses::{initscr, endwin};
 
 pub trait Check: Default{
     fn new() -> Self;
@@ -32,16 +34,25 @@ impl SnakeChecker {
             .flat_map(|a| {
                 a.current_position().clone()
             }).collect();
+        //with no head
+        let main_pos: Vec<Coordinates> = objs.iter().filter(|a| *(a.deref().category())==ObjectCategory::Main)
+            .flat_map(|a| {
+                let mut posit = a.current_position().clone();
+                posit.remove(0);
+                posit
+            }).collect();
 
         let mut mains: Vec<&mut Box<Object>> = objs.iter_mut().filter(|a| {
             *(a.deref().category())==ObjectCategory::Main && a.deref().next_position() != None
         }).collect();
 
         for m in mains {
-            for p in m.next_position().unwrap().clone() {
-                if wall_pos.contains(&p) {
-                    m.reset_next_position()
-                }
+
+            if wall_pos.contains(&m.next_position().unwrap().clone()[0])
+                || main_pos.contains(&m.next_position().unwrap().clone()[0]){
+                initscr();
+                endwin();
+                process::exit(1);
             }
 
         }

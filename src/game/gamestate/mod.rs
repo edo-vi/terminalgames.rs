@@ -153,7 +153,7 @@ impl<U: Update, C: Check> StateManager<SnakeOptions, U, C> for SnakeStateManager
     fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
         let new_instant = Instant::now();
         //if it is time to move the snake
-        if new_instant.duration_since(self._timer).as_millis() >= 90 {
+        if new_instant.duration_since(self._timer).as_millis() >= 110 {
             let input = self._options.last_input().clone();
             &self._updater.update_objects(&mut self._current, input);
             &self._checker.checks(&mut self._current, &mut self._phase);
