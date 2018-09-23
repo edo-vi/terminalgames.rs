@@ -1,3 +1,4 @@
+
 pub mod board;
 pub mod gamestate;
 
@@ -15,7 +16,7 @@ use self::rand::Rng;
 use std::sync::mpsc::{channel, Receiver};
 use std::thread::JoinHandle;
 use interface::input::PlayerInput;
-use game::gamestate::PacManStateManager;
+use game::gamestate::SnakeStateManager;
 use game::gamestate::object::Point;
 use game::gamestate::GameOptions;
 use std::mem;
