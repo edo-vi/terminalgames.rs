@@ -1,11 +1,14 @@
 
-use game::gamestate::object::ObjectFactory;
+
 
 pub mod gamestate;
 pub mod object;
 pub mod updater;
 pub mod checker;
 
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use game::gamestate::object::ObjectFactory;
 use interface::input::PlayerInput;
 use std::collections::HashMap;
 use uuid::Uuid;
@@ -20,10 +23,14 @@ use game::gamestate::object::Object;
 use std::fmt::Debug;
 use game::gamestate::updater::Update;
 use game::gamestate::checker::Check;
-use game::gamestate::updater::PacManUpdater;
-use game::gamestate::checker::PacManChecker;
+use game::gamestate::updater::SnakeUpdater;
+use game::gamestate::checker::SnakeChecker;
 use game::gamestate::object::MainFactory;
 use game::gamestate::object::WallFactory;
+use game::gamestate::object::PowerUpFactory;
+use std::time::Instant;
+use game::board::Euclidean;
+use game::board::Mappable;
 
 pub type Changes = Vec<(Coordinates, Tile)>;
 
@@ -34,14 +41,18 @@ pub trait GameOptions: Clone + Default {
 }
 
 #[derive(Clone)]
-pub struct PacManOptions {
-    _dimensions: Dimensions
+pub struct SnakeOptions {
+    _dimensions: Dimensions,
+    _last_input: PlayerInput,
+    _free_positions: Option<Vec<Coordinates>>
 }
 
-impl GameOptions for PacManOptions {
+impl GameOptions for SnakeOptions {
     fn new(board_dimension: Dimensions) -> Self {
-        PacManOptions {
-            _dimensions: board_dimension
+        SnakeOptions {
+            _dimensions: board_dimension,
+            _last_input: PlayerInput::Character('d'),
+            _free_positions: None
         }
     }
     fn dimensions(&self) -> &Dimensions {
@@ -52,17 +63,35 @@ impl GameOptions for PacManOptions {
     }
 }
 
-impl Default for PacManOptions {
+impl Default for SnakeOptions {
     fn default() -> Self {
-        PacManOptions {
-            _dimensions: Dimensions(0,0)
+        SnakeOptions {
+            _dimensions: Dimensions(0,0),
+            _last_input: PlayerInput::Character('d'),
+            _free_positions: None
         }
+    }
+}
+
+impl SnakeOptions {
+    pub fn last_input(&self) -> &PlayerInput {
+        &self._last_input
+    }
+    pub fn set_last_input(&mut self, input: PlayerInput) {
+        self._last_input=input;
+    }
+    pub fn free_positions(&self) -> &Option<Vec<Coordinates>> {
+        &self._free_positions
+    }
+    pub fn set_free_positions(&mut self, free_pos: Option<Vec<Coordinates>>) {
+        self._free_positions=free_pos;
     }
 }
 #[derive(PartialEq, Eq)]
 pub enum StatePhase {
     Start,
     Normal,
+    Create,
     End
 }
 /// Game state manager: initializes the game state and updates it accordingly to the player input,
@@ -76,23 +105,32 @@ pub trait StateManager<O: GameOptions, U: Update, C: Check>{
     fn update_state(&mut self, input: PlayerInput) -> Option<Changes>;
 }
 
-pub struct PacManStateManager<O: GameOptions, U: Update, C: Check> {
+pub struct SnakeStateManager<O: GameOptions, U: Update, C: Check> {
     _phase: StatePhase,
     _current: Vec<Box<Object>>,
+    _timer: Instant,
     _options: O,
     _updater: U,
     _checker: C
 }
 
-impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateManager<O, U, C> {
-    fn new(_options: O, _updater: U, _checker: C) -> Self {
-        let mut _main = MainFactory::firsts(_options.dimensions());
-        let mut _wall = WallFactory::firsts(_options.dimensions());
+//Specialized implementation with SnakeOptions
+impl<U: Update, C: Check> StateManager<SnakeOptions, U, C> for SnakeStateManager<SnakeOptions, U, C> {
+    fn new(mut _options: SnakeOptions, _updater: U, _checker: C) -> Self {
+        let mut _main: Vec<Box<Object>> = MainFactory::firsts(_options.clone());
+        let mut _wall: Vec<Box<Object>> = WallFactory::firsts(_options.clone());
 
         _main.append(&mut _wall);
-        let new_gsm= PacManStateManager {
+
+        //get all the occupied position to randomly chose one (not taken) to be the powerup position
+
+        let mut _powerups = PowerUpFactory::new_on_free(_options.clone(), &mut _main);
+
+        _main.append(&mut _powerups);
+        let new_gsm= SnakeStateManager {
             _phase: StatePhase::Start,
             _current: _main,
+            _timer: Instant::now(),
             _options,
             _updater,
             _checker
@@ -103,7 +141,7 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
         new_gsm
     }
 
-    fn set_options(&mut self, options: O) {
+    fn set_options(&mut self, options: SnakeOptions) {
         self._options = options;
     }
     fn set_updater(&mut self, updater: U) {
@@ -113,23 +151,102 @@ impl<O: GameOptions, U: Update, C: Check> StateManager<O, U, C> for PacManStateM
         self._checker = checker;
     }
 
-    fn update_state(&mut self, input: PlayerInput) -> Option<Changes> {
-        if self._phase == StatePhase::Start {
-            self._phase = StatePhase::Normal;
-            Some(self.last_state_as_changes())
-        } else {
+    fn update_state(&mut self, mut input: PlayerInput) -> Option<Changes> {
+        //check if the input is the opposite of the last: if it is, invalidate it
+        let new_input = match self._options.last_input() {
+            PlayerInput::Character('w') => {
+                if input==PlayerInput::Character('s') {
+                    PlayerInput::Invalid
+                } else {
+                    input
+                }
+            },
+            PlayerInput::Character('s') => {
+                if input==PlayerInput::Character('w') {
+                    PlayerInput::Invalid
+                } else {
+                    input
+                }
+            },
+            PlayerInput::Character('d') => {
+                if input==PlayerInput::Character('a') {
+                    PlayerInput::Invalid
+                } else {
+                    input
+                }
+            },
+            PlayerInput::Character('a') => {
+                if input==PlayerInput::Character('d') {
+                    PlayerInput::Invalid
+                } else {
+                    input
+                }
+            }
+            _ => input
+        };
+
+        let input = new_input;
+
+
+        let new_instant = Instant::now();
+        //if it is time to move the snake
+        if new_instant.duration_since(self._timer).as_millis() >= 110 {
+            let input = self._options.last_input().clone();
             &self._updater.update_objects(&mut self._current, input);
-            &self._checker.checks(&mut self._current);
-            Self::complete_update(&mut self._current);
-            Self::produce_changes(&mut self._current)
+            &self._checker.checks(&mut self._current, &mut self._phase);
+            self._timer=new_instant;
         }
+        //else if it is the first update
+        else if self._phase == StatePhase::Start {
+            self._phase = StatePhase::Normal;
+        }
+        //normal phase
+        else if self._phase == StatePhase::Normal {
+            &self._updater.update_objects(&mut self._current, input.clone());
+            &self._checker.checks(&mut self._current, &mut self._phase);
+            //set last input as the last input the player has given, if it is a character
+            match input {
+                PlayerInput::Character('a') | PlayerInput::Character('s') |
+                PlayerInput::Character('d') | PlayerInput::Character('w') => {
+                    self._options.set_last_input(input);
+                    //reset timer
+                    self._timer = Instant::now();
+                },
+                _ => ()
+            }
+        }//time to create a new powerup
+        else if self._phase == StatePhase::Create {
+            self._phase = StatePhase::Normal;
+            let mut new = PowerUpFactory::new_on_free(self._options.clone(), &mut self._current);
+            self._current.append(&mut new);
+
+            //continue normally
+            &self._updater.update_objects(&mut self._current, input.clone());
+            &self._checker.checks(&mut self._current, &mut self._phase);
+            //set last input as the last input the player has given, if it is a character
+            match input {
+                PlayerInput::Character('a') | PlayerInput::Character('s') |
+                PlayerInput::Character('d') | PlayerInput::Character('w') => {
+                    self._options.set_last_input(input);
+                    //reset timer
+                    self._timer = Instant::now();
+                },
+                _ => ()
+            }
+        } else {
+        }
+
+
+
+        //In any case, complete the update and then produce the changes
+        Self::complete_update(&mut self._current);
+        Self::produce_changes(&mut self._current)
+
     }
-
-
-
 }
 
-impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
+
+impl<O: GameOptions, U: Update, C: Check> SnakeStateManager<O, U, C> {
 
     pub fn last_state_as_changes(&mut self) -> Changes {
         let mut changes: Changes = Vec::new();
@@ -160,7 +277,5 @@ impl<O: GameOptions, U: Update, C: Check> PacManStateManager<O, U, C> {
         Some(vec)
     }
 
+
 }
-
-
-

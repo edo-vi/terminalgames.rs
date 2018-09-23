@@ -1,5 +1,9 @@
 
+
 #[macro_use] use super::super::super::log;
+
+extern crate rand;
+use self::rand::Rng;
 
 use interface::input::PlayerInput;
 use uuid::Uuid;
@@ -9,6 +13,9 @@ use game::board::Tile;
 use game::board::Dimensions;
 use game::board::Mappable;
 use game::board::Euclidean;
+use game::gamestate::GameOptions;
+use game::gamestate::SnakeOptions;
+use std::ops::Deref;
 
 pub type Point = Coordinates;
 pub type Coords = Vec<Coordinates>;
@@ -19,7 +26,8 @@ pub enum ObjectCategory {
     Enemy,
     NonActive,
     Wall,
-    Finished
+    Finished,
+    PowerUp
 }
 
 impl ObjectCategory {
@@ -31,6 +39,7 @@ impl ObjectCategory {
         vec.push(ObjectCategory::NonActive);
         vec.push(ObjectCategory::Wall);
         vec.push(ObjectCategory::Finished);
+        vec.push(ObjectCategory::PowerUp);
 
         vec
     }
@@ -51,16 +60,17 @@ pub trait Object {
 }
 
 #[derive(Debug)]
-pub struct Main {
+pub struct Snake {
     _id : Uuid,
     _category: ObjectCategory,
     _tile: Tile,
     _movable: bool,
     _position: Vec<Coordinates>,
-    _next_position: Option<Vec<Coordinates>>
+    _next_position: Option<Vec<Coordinates>>,
+    _last: Coordinates
 }
 
-impl Object for Main {
+impl Object for Snake {
     fn handle_input(&mut self, input: &PlayerInput) {
         match input {
             PlayerInput::Character('a') => {
@@ -68,9 +78,10 @@ impl Object for Main {
                 for v in self.current_position() {
                     vec.push(v.clone());
                 }
-                for pos in &mut vec {
-                    pos.0 = pos.0-1
-                }
+                let first = vec[0].clone();
+                vec.insert(1, first);
+
+                vec[0].0 -= 1;
                 self._next_position = Some(vec);
             },
             PlayerInput::Character('d') => {
@@ -78,9 +89,12 @@ impl Object for Main {
                 for v in self.current_position() {
                     vec.push(v.clone());
                 }
-                for pos in &mut vec {
-                    pos.0 = pos.0+1
-                }
+
+                let first = vec[0].clone();
+                vec.insert(1, first);
+
+                vec[0].0 += 1;
+
                 self._next_position = Some(vec);
             },
             PlayerInput::Character('w') => {
@@ -88,9 +102,11 @@ impl Object for Main {
                 for v in self.current_position() {
                     vec.push(v.clone());
                 }
-                for pos in &mut vec {
-                    pos.1 = pos.1-1
-                }
+
+                let first = vec[0].clone();
+                vec.insert(1, first);
+
+                vec[0].1 -= 1;
                 self._next_position = Some(vec);
             },
             PlayerInput::Character('s') => {
@@ -98,9 +114,11 @@ impl Object for Main {
                 for v in self.current_position() {
                     vec.push(v.clone());
                 }
-                for pos in &mut vec {
-                    pos.1 = pos.1+1
-                }
+
+                let first = vec[0].clone();
+                vec.insert(1, first);
+
+                vec[0].1 += 1;
                 self._next_position = Some(vec);
             },
             _ => ()
@@ -159,24 +177,25 @@ impl Object for Main {
 
 }
 
-pub trait ObjectFactory {
-    fn firsts(dim: &Dimensions) -> Vec<Box<Object>>;
+pub trait ObjectFactory<O: GameOptions> {
+    fn firsts(_options: O) -> Vec<Box<Object>>;
 }
 
 pub struct MainFactory {}
 
-impl ObjectFactory for MainFactory {
+impl<O: GameOptions> ObjectFactory<O> for MainFactory {
     ///Creates the first objects to be placed on the board
-    fn firsts(dim: &Dimensions) -> Vec<Box<Object>> {
+    fn firsts(_options: O) -> Vec<Box<Object>> {
         let vec = vec!(
             Box::new(
-                Main {
+                Snake {
                         _id: Uuid::new_v4(),
                         _category: ObjectCategory::Main,
                         _movable: true,
-                        _tile: Tile::Active(None),
-                        _position: vec!(Coordinates(4,6), Coordinates(5,5), Coordinates(6,6)),
-                        _next_position: None
+                        _tile: Tile::Active(Some('#')),
+                        _position: vec!(Coordinates(6,5), Coordinates(5,5), Coordinates(4,5)),
+                        _next_position: None,
+                        _last: Coordinates(4,5)
                     }
                 ) as Box<Object>) ;
 
@@ -250,9 +269,10 @@ impl Object for Wall {
 }
 pub struct WallFactory {}
 
-impl ObjectFactory for WallFactory {
-    fn firsts(dim: &Dimensions) -> Vec<Box<Object>> {
-        let coordinates: Vec<Coordinates> = (0..dim.x()*dim.y()).map(|a| {
+impl<O: GameOptions> ObjectFactory<O> for WallFactory {
+    fn firsts(_options: O) -> Vec<Box<Object>> {
+        let dim = _options.dimensions();
+        let coordinates: Vec<Coordinates> = (0.. dim.x()*dim.y()).map(|a| {
             dim.as_coord(a)
         })
             .filter(|a: &Coordinates| {
@@ -273,5 +293,85 @@ impl ObjectFactory for WallFactory {
         );
 
         vec
+    }
+}
+
+pub struct PowerUpFactory{}
+
+default impl<O: GameOptions> ObjectFactory<O> for PowerUpFactory {
+    fn firsts(_options: O) -> Vec<Box<Object>> {
+        let vec = vec!(
+            Box::new(
+                Wall {
+                    _id: Uuid::new_v4(),
+                    _category: ObjectCategory::PowerUp,
+                    _movable: false,
+                    _tile: Tile::Active(Some('\'')),
+                    _position: vec!(Coordinates(9,9)),
+                    _next_position: None
+                }
+            ) as Box<Object>
+        );
+
+        vec
+    }
+}
+
+//specialized implementation of ObjectFactory for PowerUpFactory
+impl ObjectFactory<SnakeOptions> for PowerUpFactory {
+    fn firsts(_options: SnakeOptions) -> Vec<Box<Object>> {
+        let coord: Coordinates;
+        match _options.free_positions() {
+            None => coord = Coordinates(9,9),
+            Some(ref free) => {
+                coord = rand::thread_rng().choose(free).unwrap().clone();
+            }
+        }
+        vec!(
+            Box::new(
+                Wall {
+                    _id: Uuid::new_v4(),
+                    _category: ObjectCategory::PowerUp,
+                    _movable: false,
+                    _tile: Tile::Active(Some('o')),
+                    _position: vec!(coord),
+                    _next_position: None
+                }
+            ) as Box<Object>
+        )
+    }
+}
+
+impl PowerUpFactory {
+    pub fn new_on_free(_options: SnakeOptions, objs: &mut Vec<Box<Object>>) -> Vec<Box<Object>> {
+        let occupied_pos: Vec<Coordinates> = objs.iter().filter(|a| *(a.deref().category())!=ObjectCategory::PowerUp)
+            .flat_map(|a| {
+                a.current_position().clone()
+            }).collect();
+
+        let mut free_pos: Vec<Coordinates> = Vec::new();
+
+        //get free positions
+        for pos in (0.._options.dimensions().x()*_options.dimensions().y()).map(|a: u16| {
+            let b: Coordinates = _options.dimensions().as_coord(a);
+            b
+        }) {
+            if !occupied_pos.contains(&pos) {
+                free_pos.push(pos.clone())
+            }
+        }
+
+        vec!(
+            Box::new(
+                Wall {
+                    _id: Uuid::new_v4(),
+                    _category: ObjectCategory::PowerUp,
+                    _movable: false,
+                    _tile: Tile::Active(Some('o')),
+                    _position: vec!(rand::thread_rng().choose(&free_pos).unwrap().clone()),
+                    _next_position: None
+                }
+            ) as Box<Object>
+        )
     }
 }

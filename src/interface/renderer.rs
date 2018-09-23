@@ -1,5 +1,6 @@
 
-use super::pancurses::{Window};
+
+use super::pancurses::{Window, ACS_BSBS};
 use super::Board;
 use game::board::Dimensions;
 use game::board::Tile;
